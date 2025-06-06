@@ -1,0 +1,40 @@
+<mat-toolbar color="primary">
+  <span>Gestion de Blind Test</span>
+</mat-toolbar>
+
+<div class="container">
+  <h2>Mes Blind Tests</h2>
+
+  <mat-list *ngIf="entries.length > 0; else noEntries">
+    <mat-list-item
+      *ngFor="let entry of entries"
+      (click)="onEntryClick(entry)"
+      class="entry-item"
+    >
+      <mat-icon matListItemGraphic>music_note</mat-icon>
+      <span MatLine>{{ entry.name }}</span>
+      <button
+        mat-icon-button
+        matListItemMeta
+        aria-label="Supprimer"
+        (click)="deleteEntry(entry); $event.stopPropagation()"
+      >
+        <mat-icon>delete</mat-icon>
+      </button>
+    </mat-list-item>
+  </mat-list>
+
+  <ng-template #noEntries>
+    <p>Aucun blind test pour le moment. Cliquez sur « + Créer » pour en ajouter.</p>
+  </ng-template>
+
+  <button
+    mat-fab
+    color="accent"
+    class="create-button"
+    aria-label="Créer une entrée"
+    (click)="openCreateDialog()"
+  >
+    <mat-icon>add</mat-icon>
+  </button>
+</div>

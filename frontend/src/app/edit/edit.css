@@ -1,0 +1,16 @@
+.toolbar-title {
+  margin-left: 16px;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.edit-container {
+  max-width: 600px;
+  margin: 24px auto;
+  padding: 16px;
+}
+
+.warning {
+  color: #d32f2f; /* rouge pour indiquer l’erreur */
+  font-weight: 500;
+}

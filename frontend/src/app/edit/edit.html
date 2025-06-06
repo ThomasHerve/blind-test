@@ -1,0 +1,22 @@
+<mat-toolbar color="primary">
+  <!-- Bouton retour -->
+  <button mat-icon-button (click)="goBack()" aria-label="Retour">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+
+  <!-- Titre : nom du blind (ou "Blind inconnu" si non trouvé) -->
+  <span class="toolbar-title">
+    {{ entry?.name || 'Blind introuvable' }}
+  </span>
+</mat-toolbar>
+
+<!-- Pour l’instant, on ne met rien d’autre que l’en-tête -->
+<div class="edit-container">
+  <p *ngIf="!entry" class="warning">
+    Aucun blind test trouvé pour cet identifiant.
+  </p>
+
+  <p *ngIf="entry">
+    Page d’édition pour « {{ entry.name }} » (contenu à venir…)
+  </p>
+</div>

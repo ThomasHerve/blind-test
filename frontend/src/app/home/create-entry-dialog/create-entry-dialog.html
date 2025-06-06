@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Créer un nouveau blind</h2>
+
+<mat-dialog-content>
+  <form #entryForm="ngForm">
+    <mat-form-field style="width: 100%;">
+      <mat-label>Nom du blind</mat-label>
+      <input
+        matInput
+        name="name"
+        [(ngModel)]="data.name"
+        required
+        autocomplete="off"
+      />
+    </mat-form-field>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Annuler</button>
+  <button
+    mat-button
+    color="primary"
+    [mat-dialog-close]="data.name"
+    [disabled]="!data.name || data.name.trim().length === 0"
+  >
+    Créer
+  </button>
+</mat-dialog-actions>
