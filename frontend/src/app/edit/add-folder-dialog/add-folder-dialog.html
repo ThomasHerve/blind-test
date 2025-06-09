@@ -1,0 +1,12 @@
+<h2 mat-dialog-title>Ajouter un dossier</h2>
+<mat-dialog-content>
+    <mat-form-field appearance="fill" style="width: 100%;">
+    <mat-label>Nom du dossier</mat-label>
+    <input matInput [(ngModel)]="data.name" required />
+    </mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Annuler</button>
+    <button mat-button color="primary" [mat-dialog-close]="data.name" [disabled]="!data.name.trim()">Créer</button>
+</mat-dialog-actions>
+  

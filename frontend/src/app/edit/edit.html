@@ -1,22 +1,78 @@
 <mat-toolbar color="primary">
-  <!-- Bouton retour -->
   <button mat-icon-button (click)="goBack()" aria-label="Retour">
     <mat-icon>arrow_back</mat-icon>
   </button>
-
-  <!-- Titre : nom du blind (ou "Blind inconnu" si non trouvé) -->
-  <span class="toolbar-title">
-    {{ entry?.name || 'Blind introuvable' }}
-  </span>
+  <span class="toolbar-title">{{ entry?.name }}</span>
+  <span class="spacer"></span>
+  <button mat-icon-button (click)="addFolder(null)" aria-label="Ajouter dossier">
+    <mat-icon>create_new_folder</mat-icon>
+  </button>
 </mat-toolbar>
 
-<!-- Pour l’instant, on ne met rien d’autre que l’en-tête -->
-<div class="edit-container">
-  <p *ngIf="!entry" class="warning">
-    Aucun blind test trouvé pour cet identifiant.
-  </p>
+<mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+  <!-- Node avec enfants -->
+  <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
+    <div class="mat-tree-node" [style]="'padding-left: ' + getPadding(node) + 'px'">
+      <button mat-icon-button matTreeNodeToggle [attr.aria-label]="'expand ' + node.name">
+        <mat-icon>{{ treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}</mat-icon>
+      </button>
+      <span *ngIf="editingNodeId !== node.id" (click)="startRename(node)">
+        {{ node.name }}
+      </span>
+      <input
+        *ngIf="editingNodeId === node.id"
+        [(ngModel)]="editName"
+        (keydown.enter)="finishRename(node)"
+        (blur)="finishRename(node)"
+        class="rename-input"
+      />
+      <span class="node-actions">
+        <!-- Bouton ajouter sous-dossier -->
+        <button mat-icon-button (click)="addFolder(node)" aria-label="Ajouter sous-dossier">
+          <mat-icon>create_new_folder</mat-icon>
+        </button>
+        <!-- Bouton ajouter musique (fonction no-op) -->
+        <button mat-icon-button (click)="addMusic(node)" aria-label="Ajouter musique">
+          <mat-icon>music_note</mat-icon>
+        </button>
+        <!-- Bouton supprimer dossier -->
+        <button mat-icon-button (click)="deleteNode(node); $event.stopPropagation()" aria-label="Supprimer dossier">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </span>
+    </div>
+    <div [class.tree-invisible]="!treeControl.isExpanded(node)">
+      <ng-container matTreeNodeOutlet></ng-container>
+    </div>
+  </mat-nested-tree-node>
 
-  <p *ngIf="entry">
-    Page d’édition pour « {{ entry.name }} » (contenu à venir…)
-  </p>
-</div>
+  <!-- Node feuille -->
+  <mat-tree-node *matTreeNodeDef="let node">
+    <div class="mat-tree-node" [style]="'padding-left: ' + getPadding(node) + 'px'">
+      <button mat-icon-button disabled></button>
+      <span *ngIf="editingNodeId !== node.id" (click)="startRename(node)">
+        {{ node.name }}
+      </span>
+      <input
+        *ngIf="editingNodeId === node.id"
+        [(ngModel)]="editName"
+        (keydown.enter)="finishRename(node)"
+        (blur)="finishRename(node)"
+        class="rename-input"
+      />
+      <span class="node-actions">
+          <button mat-icon-button (click)="addFolder(node)" aria-label="Ajouter sous-dossier">
+            <mat-icon>create_new_folder</mat-icon>
+          </button>
+          <!-- Bouton ajouter musique (fonction no-op) -->
+          <button mat-icon-button (click)="addMusic(node)" aria-label="Ajouter musique">
+            <mat-icon>music_note</mat-icon>
+          </button>
+          <!-- Bouton supprimer dossier -->
+          <button mat-icon-button (click)="deleteNode(node); $event.stopPropagation()" aria-label="Supprimer dossier">
+            <mat-icon>delete</mat-icon>
+          </button>
+      </span>
+    </div>
+  </mat-tree-node>
+</mat-tree>

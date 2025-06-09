@@ -1,0 +1,41 @@
+<h2 mat-dialog-title>Ajouter une music</h2>
+<mat-dialog-content>
+  <mat-form-field appearance="fill" class="full-width">
+    <mat-label>Rechercher une vidéo YouTube</mat-label>
+    <input matInput [(ngModel)]="searchTerm" (keyup.enter)="onSearch()" />
+    <button mat-icon-button matSuffix (click)="onSearch()">
+      <mat-icon>search</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <div class="results-container" *ngIf="results.length">
+        <div *ngFor="let video of results">
+          <!-- Miniature -->
+          <img matListAvatar class="thumbnail" [src]="video.thumbnail" alt="miniature" />
+          
+          <!-- Informations -->
+          <div matLine class="video-info">
+            <span class="title">{{ video.title }}</span>
+          </div>
+
+          <!-- Contrôles -->
+          <div matLine class="video-actions">
+            <button mat-icon-button (click)="togglePreview(video.videoId)">
+              <mat-icon>{{ previewId === video.videoId ? 'pause_circle' : 'play_circle' }}</mat-icon>
+            </button>
+            <button mat-button color="primary" (click)="select(video)">Sélectionner</button>
+          </div>
+
+          <!-- Player preview -->
+          <div class="video-preview" *ngIf="previewId === video.videoId">
+            <iframe [src]="previewUrl" width="100%" height="200" frameborder="0"
+              allow="autoplay; encrypted-media" allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+  </div>
+  <p *ngIf="!results.length && searchTerm">Aucun résultat.</p>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Annuler</button>
+</mat-dialog-actions>
