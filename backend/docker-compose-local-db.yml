@@ -1,0 +1,18 @@
+version: '3.3'
+services:
+  db:
+    container_name: blind-test-db
+    image: postgres
+    healthcheck:
+      test: "exit 0"
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+#    volumes:
+#      - pgdata:/var/lib/posgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+
+#volumes:
+#  pgdata:
