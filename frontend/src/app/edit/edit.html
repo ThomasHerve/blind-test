@@ -4,6 +4,9 @@
   </button>
   <span class="toolbar-title">{{ entry?.name }}</span>
   <span class="spacer"></span>
+  <button mat-icon-button (click)="downloadTree()" aria-label="Télécharger blind test">
+    <mat-icon>download</mat-icon>
+  </button>
   <button mat-icon-button (click)="addFolder(null)" aria-label="Ajouter dossier">
     <mat-icon>create_new_folder</mat-icon>
   </button>
@@ -48,7 +51,7 @@
 
   <!-- Node feuille -->
   <mat-tree-node *matTreeNodeDef="let node">
-    <div class="mat-tree-node" [style]="'padding-left: ' + getPadding(node) + 'px'">
+    <div class="mat-tree-node" [style]="'padding-left: ' + getPadding(node) + 'px'" *ngIf="node.type == folderType.FOLDER">
       <button mat-icon-button disabled></button>
       <span *ngIf="editingNodeId !== node.id" (click)="startRename(node)">
         {{ node.name }}
@@ -73,6 +76,38 @@
             <mat-icon>delete</mat-icon>
           </button>
       </span>
+    </div>
+    <div class="mat-tree-node music" [style]="'margin-left: ' + getPadding(node) + 'px'" *ngIf="node.type == folderType.MUSIC">
+      <span *ngIf="editingNodeId !== node.id"  [style]="'margin-left: ' + getPadding(node) + 'px'" (click)="startRename(node)">
+        {{ node.name }}
+      </span>
+      <input
+        *ngIf="editingNodeId === node.id"
+        [(ngModel)]="editName"
+        (keydown.enter)="finishRename(node)"
+        (blur)="finishRename(node)"
+        class="rename-input"
+      />
+        <span class="node-actions">
+        <!-- Bouton supprimer dossier -->
+          <button mat-icon-button (click)="deleteNode(node); $event.stopPropagation()" aria-label="Supprimer music">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </span>
+
+          <!-- Contrôles -->
+        <div matLine class="video-actions">
+          <button mat-icon-button (click)="togglePreview(node.videoId)">
+            <mat-icon>{{ previewId === node.videoId ? 'pause_circle' : 'play_circle' }}</mat-icon>
+          </button>
+        </div>
+
+        <!-- Player preview -->
+        <div class="video-preview" *ngIf="previewId === node.videoId">
+          <iframe [src]="previewUrl" width="100%" height="200" frameborder="0"
+            allow="autoplay; encrypted-media" allowfullscreen>
+          </iframe>
+        </div>
     </div>
   </mat-tree-node>
 </mat-tree>

@@ -54,9 +54,9 @@ export class AddMusicDialog {
     }
   }
 
-  select(video: { videoId: string }) {
+  select(video: { videoId: string, title: string }) {
     const url = `https://www.youtube.com/watch?v=${video.videoId}`;
-    this.dialogRef.close(url);
+    this.dialogRef.close({url: url, title: video.title, id: video.videoId});
   }
 
   cancel() {

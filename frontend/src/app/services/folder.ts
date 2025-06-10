@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { v4 as uuidv4 } from 'uuid'; // install uuid
 
-export enum entryType {
+export enum folderType {
   FOLDER,
   MUSIC
 }
@@ -10,8 +10,10 @@ export interface FolderNode {
   id: string;
   name: string;
   children: FolderNode[];
+  url: string;
   prof: number;
-  type: entryType
+  type: folderType;
+  videoId: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -36,10 +38,7 @@ export class Folder {
     localStorage.setItem(this.storageKey + '_' + blindId, JSON.stringify(tree));
   }
 
-
-
-  /** Ajoute un nouveau dossier sous parent (null = racine) */
-  addElement(blindId: string, name: string, parentId: string | null = null, type: entryType): FolderNode {
+  addFolder(blindId: string, name: string, parentId: string | null = null): FolderNode {
     const tree = this.getTree(blindId);
     let parent = undefined
     let prof = 0
@@ -50,7 +49,7 @@ export class Folder {
         prof = parent.prof + 1
       }
     }
-    const newNode: FolderNode = { id: uuidv4(), name: name.trim(), children: [], prof: prof, type: type };
+    const newNode: FolderNode = { id: uuidv4(), name: name.trim(), children: [], type: folderType.FOLDER, prof: prof, url: "", videoId: "" };
     if (!parentId) {
       tree.push(newNode);
     } else {
@@ -60,12 +59,22 @@ export class Folder {
     return newNode;
   }
 
-  addFolder(blindId: string, name: string, parentId: string | null = null): FolderNode {
-    return this.addElement(blindId, name, parentId, entryType.FOLDER)
-  }
+  addMusic(blindId: string, name: string, parentId: string | null = null, url: string, id: string): FolderNode {
+    const tree = this.getTree(blindId);
+    let parent = undefined
+    if (parentId) {
+      parent = this.findNode(tree, parentId);
+    }
+    let prof = 0
 
-  addMusic(blindId: string, name: string, parentId: string | null = null): FolderNode {
-    return this.addElement(blindId, name, parentId, entryType.MUSIC)
+    if(parent){
+      prof = parent.prof + 1
+    }
+
+    const newMusic: FolderNode = { id: uuidv4(), name: name, prof: prof, url: url, videoId: id, children: [], type: folderType.MUSIC };
+    parent?.children.push(newMusic);
+    this.saveTree(blindId, tree)
+    return newMusic
   }
 
   /** Supprime un dossier (et ses enfants) */
@@ -99,4 +108,5 @@ export class Folder {
     if (node) node.name = newName.trim();
     this.saveTree(blindId, tree);
   }
+
 }

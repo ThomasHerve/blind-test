@@ -2,6 +2,15 @@
   background-color: rgba(0, 0, 0, 0.08);
 }
 
+.music {
+  background-color: rgba(200, 0, 0, 0.5) !important;
+  border:1px solid black;
+}
+
+.mat-tree-node+music:hover {
+  background-color: rgba(100, 0, 0, 0.08) !important;
+}
+
 .toolbar-title {
   margin-left: 16px;
   font-size: 1.25rem;

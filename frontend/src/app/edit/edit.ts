@@ -14,7 +14,8 @@ import { Folder, FolderNode } from '../services/folder';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { FormsModule } from '@angular/forms';
 import { AddMusicDialog } from './add-music-dialog/add-music-dialog';
-
+import { folderType } from '../services/folder';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-edit',
@@ -32,6 +33,10 @@ import { AddMusicDialog } from './add-music-dialog/add-music-dialog';
   styleUrls: ['./edit.css']
 })
 export class Edit implements OnInit {
+  folderType = folderType
+  previewId: string | null = null;
+  previewUrl: SafeResourceUrl | null = null;  
+  
   private route = inject(ActivatedRoute);
   private folderService = inject(Folder);
   private dialog = inject(MatDialog);
@@ -39,19 +44,21 @@ export class Edit implements OnInit {
   
   blindId!: string;
   treeControl = new NestedTreeControl<FolderNode>(node => node.children);
-  dataSource: FolderNode[] = [];
+  dataSource: (FolderNode)[] = [];
   entry: BlindEntry | undefined;
   
   editingNodeId: string | null = null;
   editName: string = '';
 
   constructor(
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
     this.blindId = this.route.snapshot.paramMap.get('id')!;
     this.entry = this.blindService.getById(this.blindId);
+    this.previewId = null;
     this.loadTree();
   }
 
@@ -60,9 +67,14 @@ export class Edit implements OnInit {
     this.treeControl.dataNodes = this.dataSource;
     this.treeControl.expandAll(); // ou rien pour collapsed par défaut
     this.cd.detectChanges();
+    console.log(this.dataSource)
   }
 
   hasChild = (_: number, node: FolderNode) => !!node.children && node.children.length > 0;
+
+  downloadTree() {
+    
+  }
 
   addFolder(parent: FolderNode | null): void {
     const dialogRef = this.dialog.open(AddFolderDialog, {
@@ -83,10 +95,12 @@ export class Edit implements OnInit {
       data: {} // on peut passer des données si besoin
     });
 
-    dialogRef.afterClosed().subscribe((url: string) => {
-      if (url) {
-        console.log('URL sélectionnée:', url);
-        // Traitez l'URL (ajout à une liste, envoi au serveur, etc.)
+    dialogRef.afterClosed().subscribe((video: {url: string, title: string, id: string}) => {
+      console.log(video)
+      if (video.url) {
+        console.log('URL sélectionnée:', video.url);
+        this.folderService.addMusic(this.blindId, video.title, parent?.id, video.url, video.id);
+        this.loadTree();
       }
     });
   }
@@ -115,6 +129,17 @@ export class Edit implements OnInit {
 
   getPadding(node: FolderNode) {
     return node.prof * 8
+  }
+
+  togglePreview(videoId: string): void {
+    if (this.previewId === videoId) {
+      this.previewId = null;
+      this.previewUrl = null;
+    } else {
+      this.previewId = videoId;
+      const url = `https://www.youtube.com/embed/${videoId}`;
+      this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    }
   }
 
   goBack(): void {
