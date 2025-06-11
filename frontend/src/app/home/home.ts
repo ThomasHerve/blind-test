@@ -20,8 +20,6 @@ import { User } from '../services/user';
 export class Home implements OnInit {
   entries: BlindEntry[] = [];
 
-  api: string = "DOIS CHANGER"
-
   constructor(
     private blindService: BlindService,
     private dialog: MatDialog,
@@ -32,7 +30,6 @@ export class Home implements OnInit {
 
   ngOnInit(): void {
     this.loadEntries();
-    this.api = this.user.getApi();
   }
 
   /** Récupère la liste depuis le service. */

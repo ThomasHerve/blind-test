@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { RuntimeEnv } from './runtime-env';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { UserDTO } from '../shared/DTO/userDTO';
-import { catchError, Observable } from 'rxjs';
+import { catchError, Observable, tap } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
