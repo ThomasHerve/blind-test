@@ -1,0 +1,11 @@
+version: '3.3'
+services:
+  blind-test-frontend:
+    container_name: blind-test-frontend
+    build: .
+    ports:
+      - 443:443
+      - 80:80
+    restart: always
+    volumes:
+      - ./src/assets/env.js:/usr/share/nginx/html/assets/env.js:ro

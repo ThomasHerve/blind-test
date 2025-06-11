@@ -9,6 +9,7 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { MatLineModule } from '@angular/material/core';
+import { User } from '../services/user';
 
 @Component({
   selector: 'app-home',
@@ -19,15 +20,19 @@ import { MatLineModule } from '@angular/material/core';
 export class Home implements OnInit {
   entries: BlindEntry[] = [];
 
+  api: string = "DOIS CHANGER"
+
   constructor(
     private blindService: BlindService,
     private dialog: MatDialog,
     private router: Router,
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+    private user: User,
   ) {}
 
   ngOnInit(): void {
     this.loadEntries();
+    this.api = this.user.getApi();
   }
 
   /** Récupère la liste depuis le service. */

@@ -12,3 +12,11 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient()
   ]
 };
+
+export interface AppConfig {
+  apiHost: string;
+}
+
+import { InjectionToken } from '@angular/core';
+
+export const APP_CONFIG = new InjectionToken<AppConfig>('app.config');
