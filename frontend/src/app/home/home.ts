@@ -9,12 +9,13 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { MatLineModule } from '@angular/material/core';
-import { User } from '../services/user';
+import { UserService } from '../services/user';
+import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.html',
-  imports: [MatListModule, MatToolbarModule, MatDialogModule, CommonModule, MatLineModule, MatIconModule],
+  imports: [MatListModule, MatToolbarModule, MatDialogModule, CommonModule, MatLineModule, MatIconModule, MatButtonModule],
   styleUrls: ['./home.css']
 })
 export class Home implements OnInit {
@@ -25,7 +26,7 @@ export class Home implements OnInit {
     private dialog: MatDialog,
     private router: Router,
     private cd: ChangeDetectorRef,
-    private user: User,
+    private user: UserService,
   ) {}
 
   ngOnInit(): void {

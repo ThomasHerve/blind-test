@@ -3,11 +3,12 @@ import { RuntimeEnv } from './runtime-env';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { UserDTO } from '../shared/DTO/userDTO';
 import { catchError, Observable, tap } from 'rxjs';
+import { User } from '../shared/user/user';
 
 @Injectable({
   providedIn: 'root'
 })
-export class User {
+export class UserService {
 
   constructor(private envService: RuntimeEnv, private http: HttpClient) { }
 
@@ -20,6 +21,12 @@ export class User {
   loginUser(user: UserDTO): Observable<UserDTO> {
     return this.http.post<UserDTO>(`${this.envService.apiUrl}/users/login`, user).pipe(
       catchError((error: any) => { throw this.handleError(error) })
+    );
+  }
+
+    tryUserProfile(): Observable<UserDTO> {
+    return this.http.get<UserDTO>(`${this.envService.apiUrl}/users/profile`).pipe(
+      catchError(() => { throw User.removeUser() })
     );
   }
 

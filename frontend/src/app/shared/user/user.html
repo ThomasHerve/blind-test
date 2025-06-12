@@ -1,0 +1,13 @@
+<div class="user">
+    <span *ngIf="user">
+        <label>{{ user!.username }}</label>
+        <button mat-icon-button (click)="logout()" aria-label="logout"title="Logout">
+            <mat-icon>logout</mat-icon>
+        </button>
+    </span>
+    <span *ngIf="!user">
+        <button mat-icon-button (click)="login()" aria-label="login" title="Login">
+            <mat-icon>login</mat-icon>
+        </button> 
+    </span>
+</div>
