@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { UserDTO } from '../DTO/userDTO';
 import { Router } from '@angular/router';
 import { UserService } from '../../services/user';
@@ -7,6 +7,7 @@ import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { LoginDialog } from './login-dialog/login-dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-user',
@@ -26,11 +27,9 @@ export class User {
 
     if (value) {
       localStorage.setItem('user', JSON.stringify(value))
-      //App.presentOkToast("Welcome " + value.username)
     }
     else {
       localStorage.removeItem('user')
-      //AppComponent.presentOkToast("Successfully logged out")
     }
   }
   get user(): UserDTO | null {
@@ -41,7 +40,7 @@ export class User {
   }
 
 
-  constructor(private router: Router, private userService: UserService, private dialog: MatDialog, private cd: ChangeDetectorRef) {
+  constructor(private router: Router, private userService: UserService, private dialog: MatDialog, private cd: ChangeDetectorRef, private snackBar: MatSnackBar) {
     User.instance = this;
   }
 
@@ -60,18 +59,36 @@ export class User {
 
   login() {
     const dialogRef = this.dialog.open(LoginDialog, {
-          width: '280px',
+          width: '380px',
           data: { name: '', password: '' } // on peut passer des données initiales si besoin
         });
     
         dialogRef.afterClosed().subscribe(result => {
             // TODO result.name result.password
-            this.userService.loginUser(new UserDTO({ username: result.name, password: result.password })).subscribe((value)=>{
-              this.user = value
-              this.cd.detectChanges();
-            })
+            if(result) {
+              if(result.create) {
+                console.log(result)
+                this.userService.registerUser(new UserDTO({ username: result.name, password: result.password, email: result.email }), this.handleError).subscribe((value)=>{
+                  this.user = value
+                  this.cd.detectChanges();
+                })
+              } else {
+                this.userService.loginUser(new UserDTO({ username: result.name, password: result.password }), this.handleError).subscribe((value)=>{
+                  this.user = value
+                  this.cd.detectChanges();
+                })
+              }
+            }
+            
         });
   }
+
+  handleError(error: any) {
+    let error_message = error.error.message
+    console.log(error_message)
+    User.sendToastError(error_message)
+  }
+
 
   static cacheLoadUser() {
     const json = localStorage.getItem('user');
@@ -79,6 +96,20 @@ export class User {
       const user = JSON.parse(json);
       User._user = user
     }
+  }
+
+  static sendToastSuccess(message: string) {
+    this.instance.snackBar.open(message, 'Dismiss', {
+      duration: 3000,
+      panelClass: ['snackbar-success']
+    })
+  }
+
+  static sendToastError(message: string) {
+    this.instance.snackBar.open(message, 'Dismiss', {
+      duration: 3000,
+      panelClass: ['snackbar-error']
+    })
   }
 
 }

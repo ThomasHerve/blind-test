@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { RouterOutlet } from '@angular/router';
 import { User } from './shared/user/user';
 import { UserService } from './services/user';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-root',
@@ -11,6 +12,8 @@ import { UserService } from './services/user';
   styleUrl: './app.css'
 })
 export class App {
+
+  
   protected title = 'frontend';
 
   constructor(private userService: UserService) {
@@ -22,4 +25,5 @@ export class App {
       this.userService.tryUserProfile();
 
   }
+
 }

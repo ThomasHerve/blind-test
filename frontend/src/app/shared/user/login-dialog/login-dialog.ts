@@ -9,6 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 export interface LoginData {
   name: string;
   password: string;
+  password_verif: string;
+  email: string;
 }
 
 @Component({
@@ -18,8 +20,19 @@ export interface LoginData {
   styleUrl: './login-dialog.css'
 })
 export class LoginDialog {
+
+  create: boolean = false;
+
   constructor(
     public dialogRef: MatDialogRef<LoginDialog>,
     @Inject(MAT_DIALOG_DATA) public data: LoginData
   ) {}
+
+  validateEmail(email: string) {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+  };
 }

@@ -12,19 +12,19 @@ export class UserService {
 
   constructor(private envService: RuntimeEnv, private http: HttpClient) { }
 
-  registerUser(user: UserDTO): Observable<any> {
-    return this.http.post(`${this.envService.apiUrl}/users/create`, user).pipe(
-      catchError((error: any) => { throw this.handleError(error) })
+  registerUser(user: UserDTO, handleError: Function): Observable<UserDTO> {
+    return this.http.post<UserDTO>(`${this.envService.apiUrl}/users/create`, user).pipe(
+      catchError((error: any) => { handleError(error); throw this.handleError(error) })
     );
   }
 
-  loginUser(user: UserDTO): Observable<UserDTO> {
+  loginUser(user: UserDTO, handleError: Function): Observable<UserDTO> {
     return this.http.post<UserDTO>(`${this.envService.apiUrl}/users/login`, user).pipe(
-      catchError((error: any) => { throw this.handleError(error) })
+      catchError((error: any) => { handleError(error); throw this.handleError(error) })
     );
   }
 
-    tryUserProfile(): Observable<UserDTO> {
+  tryUserProfile(): Observable<UserDTO> {
     return this.http.get<UserDTO>(`${this.envService.apiUrl}/users/profile`).pipe(
       catchError(() => { throw User.removeUser() })
     );
@@ -35,7 +35,6 @@ export class UserService {
   }
 
   private handleError(error: any): any {
-    console.error(error.message);
     return error;
   }
 

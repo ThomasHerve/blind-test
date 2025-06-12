@@ -28,6 +28,7 @@ export class UsersController {
     @UsePipes(ValidationPipe)
     async createUser(@Body() createUserDto: CreateUserDto) {
       try {
+        console.log("OK")
         return this.userService.createUser(createUserDto);
       } catch(e) {
         throw e;
