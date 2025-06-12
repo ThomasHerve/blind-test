@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { BlindEntry } from './blind.entity'
 
 @Entity()
@@ -36,4 +36,7 @@ export class User {
 
   @OneToMany(() => BlindEntry, (blind) => blind.user)
   blindEntries: BlindEntry[]
+
+  @ManyToMany(() => BlindEntry, (blind) => blind.collaborators)
+  sharedBlindEntries: BlindEntry[]
 }

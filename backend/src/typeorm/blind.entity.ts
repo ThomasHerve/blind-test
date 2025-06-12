@@ -1,10 +1,5 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { User } from './user.entity';
-
-export enum folderType {
-  FOLDER,
-  MUSIC
-}
 
 @Entity()
 export class BlindEntry {
@@ -23,14 +18,17 @@ export class BlindEntry {
   @ManyToOne(() => User, (user) => user.blindEntries, {onDelete: 'CASCADE'})
   user: User
 
-  @OneToMany(() => Node, (entry) => entry.blind)
-  entries: Node[]
+  @ManyToMany(() => User, (user) => user.sharedBlindEntries)
+  collaborators: User[]
+
+  @OneToMany(() => BlindNode, (entry) => entry.blind)
+  entries: BlindNode[]
   
 }
 
 @Entity()
 @Unique(['name', 'blind'])
-export class Node {
+export class BlindNode {
   @PrimaryGeneratedColumn({
     type: 'bigint',
     name: 'blind_entry_id',
@@ -52,11 +50,11 @@ export class Node {
   @ManyToOne(()=>BlindEntry, (blind)=> blind.entries, {onDelete: 'CASCADE'})
   blind: BlindEntry
 
-  @OneToMany(() => Node, (entry) => entry.parent)
-  childrens: Node[]
+  @OneToMany(() => BlindNode, (entry) => entry.parent)
+  childrens: BlindNode[]
 
-  @ManyToOne(()=>Node, (entry)=> entry.childrens, {onDelete: 'CASCADE'})
-  parent: Node | undefined
+  @ManyToOne(()=>BlindNode, (entry)=> entry.childrens, {onDelete: 'CASCADE'})
+  parent: BlindNode | undefined
 
   @Column({
       nullable: false,
@@ -66,9 +64,9 @@ export class Node {
   
   @Column({
       nullable: false,
-      default: folderType.FOLDER,
+      default: false,
   })
-  type: folderType;
+  type: boolean; // true: music
 
   @Column({
       nullable: false,
