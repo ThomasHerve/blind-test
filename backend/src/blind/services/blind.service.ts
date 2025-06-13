@@ -18,7 +18,6 @@ export class BlindService {
 
     async createBlind(username: string, blind_title) {
         const user = await this.userService.getUser(username);
-
         if (!user) {
             throw new HttpException("User not found", HttpStatus.NOT_FOUND);
         }
@@ -31,7 +30,10 @@ export class BlindService {
 
         const savedBlind = await this.BlindEntriesRepository.save(newBlind);
 
-        return savedBlind;
+        return {
+            id: savedBlind.id,
+            title: savedBlind.title
+        };
     }
 
     // Public

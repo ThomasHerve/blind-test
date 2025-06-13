@@ -20,7 +20,7 @@ export class UsersService {
   async getUser(username:string) {
     let user: User | null = await this.userRepository.findOne({
       where: {username},
-      select: ["email", "id", "blindEntries", "username", "admin"],
+      select: ["email", "id", "blindEntries", "username", "admin", "sharedBlindEntries"],
       relations: {
         blindEntries: true,
       },

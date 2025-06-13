@@ -12,7 +12,7 @@ export class BlindController {
     @UsePipes(ValidationPipe)
     async createBlind(@Body() createBlindDto: CreateBlindDto, @Request() req) {
       try {
-        return this.BlindService.createBlind(createBlindDto.title, req.user.username);
+        return this.BlindService.createBlind(req.user.username, createBlindDto.title);
       } catch(e) {
         throw e;
       }

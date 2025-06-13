@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import entities from './typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './users/services/users/jwt-auth.guard';
+import { BlindModule } from './blind/blind.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { JwtAuthGuard } from './users/services/users/jwt-auth.guard';
       }),
       inject: [ConfigService],
     }),
-    UsersModule  
+    UsersModule,
+    BlindModule  
   ],
   controllers: [AppController],
   providers: [{
