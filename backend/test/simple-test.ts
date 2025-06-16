@@ -133,7 +133,8 @@ post("http://localhost:3000/users/login", {
         password: "thomasthomas",
     }, false).then((res)=>{
       const token = JSON.parse(res)["access_token"];
-      post("http://localhost:3000/blinds/create", {
+      /*post("http://localhost:3000/blinds/create", {
         title: "test2"
-    }, token).then(console.log);
+    }, token).then(console.log);*/
+    get("http://localhost:3000/blinds/get", token).then(console.log)
 })

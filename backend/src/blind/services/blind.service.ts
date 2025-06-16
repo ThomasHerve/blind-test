@@ -14,8 +14,6 @@ export class BlindService {
         private readonly userService: UsersService
       ) {}
     
-
-
     async createBlind(username: string, blind_title) {
         const user = await this.userService.getUser(username);
         if (!user) {
@@ -36,25 +34,23 @@ export class BlindService {
         };
     }
 
-    // Public
     async getAllBlinds(username: string) {
-        const user: User | null = await this.userService.getUser(username)
-        let res : any = undefined;
-        if(user) {
+        const user: User | null = await this.userService.getUser(username);
+        if (!user) return [];
+
         const entries = await this.BlindEntriesRepository.createQueryBuilder("entry")
-            .leftJoin("entry.collaborators", "collaborator")
-            .leftJoin("entry.user", "owner")
+            .leftJoinAndSelect("entry.user", "owner")
+            .leftJoinAndSelect("entry.collaborators", "collaborator")
             .where("owner.id = :userId", { userId: user.id })
             .orWhere("collaborator.id = :userId", { userId: user.id })
-            .select(["entry.id", "entry.title", "owner.id"])
+            .orderBy("entry.id", "ASC")
             .getMany();
-            res = entries.map(entry => ({
-                id: entry.id,
-                title: entry.title,
-                isOwner: entry.user.id === user.id
-            }));
-        }
-        return res
+
+        return entries.map(entry => ({
+            id: entry.id,
+            title: entry.title,
+            isOwner: entry.user.id === user.id,
+        }));
     }
 
     async getAllBlindsFiltered(filter: string, username: string) {

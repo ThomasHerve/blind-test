@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, Unique } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity()
@@ -19,6 +19,7 @@ export class BlindEntry {
   user: User
 
   @ManyToMany(() => User, (user) => user.sharedBlindEntries)
+  @JoinTable()
   collaborators: User[]
 
   @OneToMany(() => BlindNode, (entry) => entry.blind)
