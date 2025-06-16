@@ -34,5 +34,11 @@ export class BlindController {
       return this.BlindService.getAllBlinds(req.user.username);
     }
 
+    @Post('addCollaborator')
+    @UsePipes(ValidationPipe)
+    addCollaborator(@Body() addCollaboratorDto: AddCollaboratorDto, @Request() req) {
+      return this.BlindService.addBlindCollaborator(req.user.username, addCollaboratorDto.id, addCollaboratorDto.username)
+    }
+
     
 }

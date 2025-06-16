@@ -10,6 +10,10 @@ export class AddCollaboratorDto {
     @IsNotEmpty()
     @MinLength(1)
     username: string
+
+    @IsNotEmpty()
+    @MinLength(1)
+    id: number
 }
 
 export class DeleteBlindDto {

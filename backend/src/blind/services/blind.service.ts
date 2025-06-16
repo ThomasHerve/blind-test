@@ -158,22 +158,32 @@ export class BlindService {
     }
 
     async deleteBlind(username: string, id: number) {
-        const user: User | null= await this.userService.getUser(username)
-        if(user) {
-            let Blind = user.blindEntries.find((element)=>element.id == id);
-            if(Blind){
-                this.BlindEntriesRepository.delete(Blind);
-                return true
-            }
-            Blind = user.sharedBlindEntries.find((element)=>element.id == id);
-            if(Blind) {
-                Blind.collaborators = Blind.collaborators.filter(collab => collab.id !== user.id);
-                await this.BlindEntriesRepository.save(Blind);
-                return true;
-            }
-            
+        const user = await this.userService.getUser(username);
+        if (!user) {
+            throw new HttpException("Blind doesn't exist", HttpStatus.FORBIDDEN);
         }
-        throw new HttpException("Blind doesn't exist", HttpStatus.FORBIDDEN)
-    } 
+
+        const entry = await this.BlindEntriesRepository.findOne({
+            where: { id },
+            relations: ['user', 'collaborators'],
+        });
+        if (!entry) {
+            throw new HttpException("Blind doesn't exist", HttpStatus.FORBIDDEN);
+        }
+
+        if (entry.user.id === user.id) {
+            await this.BlindEntriesRepository.delete(id);
+            return true;
+        }
+
+        if (entry.collaborators.some(c => c.id === user.id)) {
+            entry.collaborators = entry.collaborators.filter(c => c.id !== user.id);
+            await this.BlindEntriesRepository.save(entry);
+            return true;
+        }
+
+        throw new HttpException("Blind doesn't exist", HttpStatus.FORBIDDEN);
+    }
+
 
 }

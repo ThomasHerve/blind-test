@@ -133,8 +133,14 @@ post("http://localhost:3000/users/login", {
         password: "thomasthomas",
     }, false).then((res)=>{
       const token = JSON.parse(res)["access_token"];
+      // owner
       /*post("http://localhost:3000/blinds/create", {
         title: "test2"
     }, token).then(console.log);*/
-    get("http://localhost:3000/blinds/get", token).then(console.log)
-})
+    //get("http://localhost:3000/blinds/get", token).then(console.log)
+    //delete_("http://localhost:3000/blinds/delete/1", token).then(console.log)
+    //get("http://localhost:3000/blinds/get", token).then(console.log)
+
+      // collab
+      
+  })
