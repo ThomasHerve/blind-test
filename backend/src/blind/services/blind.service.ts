@@ -50,6 +50,7 @@ export class BlindService {
             id: entry.id,
             title: entry.title,
             isOwner: entry.user.id === user.id,
+            users: entry.collaborators.map((collaborator) => collaborator.username)
         }));
     }
 

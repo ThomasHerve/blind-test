@@ -8,12 +8,10 @@ export class CreateBlindDto {
 
 export class AddCollaboratorDto {
     @IsNotEmpty()
-    @MinLength(1)
-    username: string
+    username: string;
 
     @IsNotEmpty()
-    @MinLength(1)
-    id: number
+    id: number;
 }
 
 export class DeleteBlindDto {

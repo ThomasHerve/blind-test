@@ -27,7 +27,7 @@ function post(url, data, token) {
       const req = http.request(url, options, (res) => {
         if (res.statusCode < 200 || res.statusCode > 299) {
           console.log(res.message)
-          return reject(new Error(`HTTP status code ${res.statusCode}: ${res.statusMessage}`))
+          return reject(new Error(`HTTP status code ${res.statusCode}`))
         }
   
         let body = []
@@ -128,25 +128,23 @@ function get(url, token) {
   });
 }
 
-post("http://localhost:3000/users/login", {
-        username: "thomas",
+post("http://localhost:3000/users/create", {
+        username: "test1",
         password: "thomasthomas",
-    }, false).then((res)=>{
-      const token = JSON.parse(res)["access_token"];
-      // owner
-      /*
-      post("http://localhost:3000/blinds/create", {
-        title: "test"
-    }, token).then(console.log);*/
-    get("http://localhost:3000/blinds/get", token).then(console.log)
-    //delete_("http://localhost:3000/blinds/delete/1", token).then(console.log)
-    //get("http://localhost:3000/blinds/get", token).then(console.log)
-
-    // collab
-    post("http://localhost:3000/blinds/addCollaborator", {
-      id: 1,
-      username: "test1"
-    }, token).then(console.log);  
-    get("http://localhost:3000/blinds/get", token).then(console.log)
-
-  })
+        email: "a@gmail.com"
+    }, false)
+post("http://localhost:3000/users/create", {
+        username: "test2",
+        password: "thomasthomas",
+        email: "a@gmail.com"
+    }, false)
+post("http://localhost:3000/users/create", {
+        username: "test3",
+        password: "thomasthomas",
+        email: "a@gmail.com"
+    }, false)
+post("http://localhost:3000/users/create", {
+        username: "test4",
+        password: "thomasthomas",
+        email: "a@gmail.com"
+    }, false)
