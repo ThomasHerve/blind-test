@@ -1,7 +1,7 @@
 const http = require('http');
 
 // utils
-function post(url, data, token) {
+function my_post(url, data, token) {
     const dataString = JSON.stringify(data)
     let header = {}
     if(token) {
@@ -52,16 +52,19 @@ function post(url, data, token) {
     })
   }
 
-  function delete_(url, token) {
+  function my_delete(url, data, token) {
+    const dataString = JSON.stringify(data)
     let header = {}
     if(token) {
         header = {
             'Content-Type': 'application/json',
+            'Content-Length': dataString.length,
             Authorization: 'Bearer ' + token
         }
     } else {
         header = {
             'Content-Type': 'application/json',
+            'Content-Length': dataString.length,
         }
     }
 
@@ -94,12 +97,13 @@ function post(url, data, token) {
         reject(new Error('Request time out'))
       })
   
+      req.write(dataString)
       req.end()
     })
   }
 
 
-function get(url, token) {
+function my_get(url, token) {
   return new Promise((resolve, reject) => {
     const options = {
       method: 'GET',
@@ -128,7 +132,7 @@ function get(url, token) {
   });
 }
 
-post("http://localhost:3000/users/login", {
+my_post("http://localhost:3000/users/login", {
         username: "thomas",
         password: "thomasthomas",
     }, false).then((res)=>{
@@ -138,15 +142,28 @@ post("http://localhost:3000/users/login", {
       post("http://localhost:3000/blinds/create", {
         title: "test"
     }, token).then(console.log);*/
-    get("http://localhost:3000/blinds/get", token).then(console.log)
+    
     //delete_("http://localhost:3000/blinds/delete/1", token).then(console.log)
     //get("http://localhost:3000/blinds/get", token).then(console.log)
 
     // collab
-    post("http://localhost:3000/blinds/addCollaborator", {
+    
+    my_post("http://localhost:3000/blinds/addCollaborator", {
       id: 1,
       username: "test1"
-    }, token).then(console.log);  
-    get("http://localhost:3000/blinds/get", token).then(console.log)
+    }, token).then((res)=>{
+      console.log(res)
+    //get("http://localhost:3000/blinds/get", token).then(console.log)
+    
 
+    my_get("http://localhost:3000/blinds/get", token).then((res)=>{
+      console.log(res);
+      my_delete("http://localhost:3000/blinds/removeCollaborator",{
+        id: 1,
+        username: "test1"
+      }, token).then((res)=>{
+        console.log(res)
+        my_get("http://localhost:3000/blinds/get", token).then(console.log)
+      })
+    })})
   })

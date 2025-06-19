@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Param, Post, Request, UsePipes, ValidationPipe, ParseIntPipe, Delete, HttpException, HttpStatus } from '@nestjs/common';
-import { CreateBlindDto, AddCollaboratorDto, DeleteBlindDto } from 'src/blind/dto/blind.dtos';
+import { CreateBlindDto, AddCollaboratorDto, DeleteBlindDto, RemoveCollaboratorDto } from 'src/blind/dto/blind.dtos';
 import { BlindService } from 'src/blind/services/blind.service';
-import { Public } from 'src/users/services/users/public.decorator';
 
 @Controller('blinds')
 export class BlindController {
@@ -45,5 +44,13 @@ export class BlindController {
       }
     }
 
-    
+    @Delete('removeCollaborator')
+    removeCollaborator(@Body() removeCollaboratorDto: RemoveCollaboratorDto, @Request() req) {
+      try {
+        console.log("ICI OK")
+        return this.BlindService.removeBlindCollaborator(req.user.username, removeCollaboratorDto.id, removeCollaboratorDto.username)
+      } catch(e) {
+        throw e;
+      }
+    }
 }

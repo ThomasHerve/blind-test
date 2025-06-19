@@ -14,6 +14,14 @@ export class AddCollaboratorDto {
     id: number;
 }
 
+export class RemoveCollaboratorDto {
+    @IsNotEmpty()
+    username: string;
+
+    @IsNotEmpty()
+    id: number;
+}
+
 export class DeleteBlindDto {
     @IsNotEmpty()
     id: number;
