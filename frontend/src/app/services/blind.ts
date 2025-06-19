@@ -1,8 +1,12 @@
 import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { RuntimeEnv } from './runtime-env';
+import { catchError, map, Observable } from 'rxjs';
+import { User } from '../shared/user/user';
 
 export interface BlindEntry {
   id: string;    // identifiant unique (timestamp ou UUID)
-  name: string;  // nom de l’entrée
+  title: string;  // nom de l’entrée
 }
 
 @Injectable({
@@ -10,10 +14,14 @@ export interface BlindEntry {
 })
 export class BlindService {
   private storageKey = 'blindEntries';
-
-  constructor() {}
+  private apiUrl = '';
+  
+  constructor(private envService: RuntimeEnv, private http: HttpClient) {
+    this.apiUrl = this.envService.apiUrl
+  }
 
   /** Récupère toutes les entrées depuis le localStorage (ou renvoie [] si rien). */
+  /*
   getAll(): BlindEntry[] {
     const raw = localStorage.getItem(this.storageKey);
     if (!raw) {
@@ -25,8 +33,17 @@ export class BlindService {
       return [];
     }
   }
+    */
+   getAll(): Observable<BlindEntry[]> {
+    return this.http.get<BlindEntry[]>(`${this.apiUrl}/blinds/get`, {
+    headers: new HttpHeaders({
+      'Authorization': `Bearer ${User.getAccessToken()}`
+    })
+  }).pipe(catchError((error: any) => { throw this.handleError(error) }));
+   }
 
   /** Ajoute une nouvelle entrée (et la persiste). */
+  /*
   add(name: string): BlindEntry {
     const entries = this.getAll();
     const newEntry: BlindEntry = {
@@ -37,20 +54,49 @@ export class BlindService {
     this.saveAll(entries);
     return newEntry;
   }
+  */
 
-  /** Met à jour la liste complète dans le localStorage. */
-  private saveAll(entries: BlindEntry[]): void {
-    localStorage.setItem(this.storageKey, JSON.stringify(entries));
+  add(name: string): Observable<BlindEntry> {
+    return this.http.post<BlindEntry>(`${this.apiUrl}/blinds/create`, {
+      title: name
+    }, {
+    headers: new HttpHeaders({
+      'Authorization': `Bearer ${User.getAccessToken()}`
+    })
+  }).pipe(catchError((error: any) => { throw this.handleError(error) }));
   }
 
+  /** Met à jour la liste complète dans le localStorage. */
+  /*
+  private saveAll(entries: BlindEntry[]): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(entries));
+  }*/
+
   /** (Optionnel pour plus tard) Récupérer un blind par id. */
-  getById(id: string): BlindEntry | undefined {
-    return this.getAll().find(e => e.id === id);
+  
+  getById(id: string): Observable<BlindEntry | undefined> {
+    return this.getAll().pipe(
+      map((blinds: BlindEntry[]) => blinds.find(blind => blind.id === id)),
+      catchError((error: any) => { throw this.handleError(error); })
+    );
   }
 
   /** (Optionnel pour plus tard) Supprimer une entrée. */
+  /*
   remove(id: string): void {
     const filtered = this.getAll().filter(e => e.id !== id);
     this.saveAll(filtered);
+  }*/
+
+  remove(id: string): Observable<boolean> {
+    return this.http.delete<boolean>(`${this.apiUrl}/blinds/create/` + id, {
+    headers: new HttpHeaders({
+      'Authorization': `Bearer ${User.getAccessToken()}`
+    })
+  }).pipe(catchError((error: any) => { throw this.handleError(error) }));
+  }
+
+  private handleError(error: any): any {
+    return error;
   }
 }

@@ -8,6 +8,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { LoginDialog } from './login-dialog/login-dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-user',
@@ -39,6 +40,8 @@ export class User {
     User.user = value
   }
 
+  private static _currentUser$ = new BehaviorSubject<UserDTO | null>(null);
+  public static currentUser$: Observable<UserDTO | null> = User._currentUser$.asObservable();
 
   constructor(private router: Router, private userService: UserService, private dialog: MatDialog, private cd: ChangeDetectorRef, private snackBar: MatSnackBar) {
     User.instance = this;
@@ -50,10 +53,18 @@ export class User {
     this.user = null
   }
 
+  static getAccessToken() {
+    if(this.user != null) {
+      return this.user.access_token
+    }
+    return ""
+  }
+
   logout() {
       // insert logout
       this.user = null
       this.router.navigateByUrl('')
+      User._currentUser$.next(this.user);
       this.cd.detectChanges();
   }
 
@@ -70,11 +81,13 @@ export class User {
                 console.log(result)
                 this.userService.registerUser(new UserDTO({ username: result.name, password: result.password, email: result.email }), this.handleError).subscribe((value)=>{
                   this.user = value
+                  User._currentUser$.next(this.user);
                   this.cd.detectChanges();
                 })
               } else {
                 this.userService.loginUser(new UserDTO({ username: result.name, password: result.password }), this.handleError).subscribe((value)=>{
                   this.user = value
+                  User._currentUser$.next(this.user);
                   this.cd.detectChanges();
                 })
               }

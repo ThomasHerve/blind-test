@@ -11,6 +11,7 @@ import { ChangeDetectorRef } from '@angular/core';
 import { MatLineModule } from '@angular/material/core';
 import { UserService } from '../services/user';
 import { MatButtonModule } from '@angular/material/button';
+import { User } from '../shared/user/user';
 
 @Component({
   selector: 'app-home',
@@ -31,12 +32,25 @@ export class Home implements OnInit {
 
   ngOnInit(): void {
     this.loadEntries();
+    User.currentUser$.subscribe((user)=>{
+      console.log(this)
+      this.loadEntries();
+    })
+    //User.subscribeEvent(this.loadEntries);
   }
 
   /** Récupère la liste depuis le service. */
   private loadEntries(): void {
-    this.entries = this.blindService.getAll();
-    this.cd.detectChanges();
+    if(User.user != null) {
+      this.blindService.getAll().subscribe((res)=>{
+        console.log(res)
+          this.entries = res
+          this.cd.detectChanges();
+      })
+    }
+    else {
+      this.entries = []
+    }
   }
 
   /** Ouvre le dialogue pour créer une nouvelle entrée. */
@@ -62,10 +76,8 @@ export class Home implements OnInit {
   }
 
   deleteEntry(entry: BlindEntry): void {
-    // Si vous souhaitez demander confirmation avant suppression :
-    // if (!confirm(`Supprimer "${entry.name}" ?`)) { return; }
-
-    this.blindService.remove(entry.id);
-    this.loadEntries();
+    this.blindService.remove(entry.id).subscribe((res)=>{
+      this.loadEntries();
+    });
   }
 }

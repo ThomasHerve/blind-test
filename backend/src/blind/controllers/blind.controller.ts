@@ -47,7 +47,6 @@ export class BlindController {
     @Delete('removeCollaborator')
     removeCollaborator(@Body() removeCollaboratorDto: RemoveCollaboratorDto, @Request() req) {
       try {
-        console.log("ICI OK")
         return this.BlindService.removeBlindCollaborator(req.user.username, removeCollaboratorDto.id, removeCollaboratorDto.username)
       } catch(e) {
         throw e;

@@ -57,9 +57,11 @@ export class Edit implements OnInit {
 
   ngOnInit(): void {
     this.blindId = this.route.snapshot.paramMap.get('id')!;
-    this.entry = this.blindService.getById(this.blindId);
-    this.previewId = null;
-    this.loadTree();
+    this.blindService.getById(this.blindId).subscribe((res)=>{
+      this.entry = res;
+      this.previewId = null;
+      this.loadTree();
+    });
   }
 
   loadTree(): void {
