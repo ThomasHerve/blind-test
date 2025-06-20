@@ -1,0 +1,3 @@
+.add-collaborator { display: flex; gap: 8px; margin-top: 16px; align-items: center; }
+.full-width { flex: 1; }
+.error-message { text-align: center; margin: 16px 0; font-weight: bold; color: red; }

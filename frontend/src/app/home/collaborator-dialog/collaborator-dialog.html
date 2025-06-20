@@ -1,0 +1,28 @@
+    <h1 mat-dialog-title>Collaborateurs pour "{{ data.title }}"</h1>
+    <div mat-dialog-content>
+      <mat-list>
+        <mat-list-item *ngFor="let user of users">
+          <span>{{ user }}</span>
+          <button mat-icon-button color="warn" (click)="onRemove(user)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-list-item>
+        <mat-divider *ngIf="users.length"></mat-divider>
+      </mat-list>
+
+      <div class="add-collaborator">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Ajouter un collaborateur</mat-label>
+          <input matInput placeholder="Nom d'utilisateur" [(ngModel)]="newUsername" />
+        </mat-form-field>
+        <button mat-raised-button color="primary" [disabled]="!newUsername" (click)="onAdd()">
+          Ajouter
+        </button>
+      </div>
+    </div>
+    <div *ngIf="errorMessage" class="error-message" [style.opacity]="opacity">
+        {{ errorMessage }}
+      </div>
+    <div mat-dialog-actions align="end">
+      <button mat-button (click)="onClose()">Fermer</button>
+    </div>

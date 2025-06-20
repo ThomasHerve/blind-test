@@ -9,9 +9,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 import { MatLineModule } from '@angular/material/core';
-import { UserService } from '../services/user';
 import { MatButtonModule } from '@angular/material/button';
 import { User } from '../shared/user/user';
+import { DeleteEntryDialog } from './delete-entry-dialog/delete-entry-dialog';
+import { CollaboratorDialog } from './collaborator-dialog/collaborator-dialog';
 
 @Component({
   selector: 'app-home',
@@ -21,13 +22,13 @@ import { User } from '../shared/user/user';
 })
 export class Home implements OnInit {
   entries: BlindEntry[] = [];
+  connected: boolean = false;
 
   constructor(
     private blindService: BlindService,
     private dialog: MatDialog,
     private router: Router,
     private cd: ChangeDetectorRef,
-    private user: UserService,
   ) {}
 
   ngOnInit(): void {
@@ -42,6 +43,7 @@ export class Home implements OnInit {
   /** Récupère la liste depuis le service. */
   private loadEntries(): void {
     if(User.user != null) {
+      this.connected = true; 
       this.blindService.getAll().subscribe((res)=>{
         console.log(res)
           this.entries = res
@@ -49,6 +51,7 @@ export class Home implements OnInit {
       })
     }
     else {
+      this.connected = false;
       this.entries = []
     }
   }
@@ -56,14 +59,17 @@ export class Home implements OnInit {
   /** Ouvre le dialogue pour créer une nouvelle entrée. */
   openCreateDialog(): void {
     const dialogRef = this.dialog.open(CreateEntryDialog, {
-      width: '280px',
+      width: '380px',
       data: { name: '' } // on peut passer des données initiales si besoin
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result && result.trim().length > 0) {
-        this.blindService.add(result.trim());
-        this.loadEntries();
+        this.blindService.add(result.trim()).subscribe((res)=>{
+          console.log("Entrée créée")
+          this.loadEntries();
+
+        });
       }
     });
   }
@@ -76,8 +82,34 @@ export class Home implements OnInit {
   }
 
   deleteEntry(entry: BlindEntry): void {
-    this.blindService.remove(entry.id).subscribe((res)=>{
-      this.loadEntries();
+    const dialogRef = this.dialog.open(DeleteEntryDialog, {
+      width: '380px',
     });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if(result) {
+        this.blindService.remove(entry.id).subscribe((res)=>{
+          this.loadEntries();
+        });
+      }
+    });
+
+  }
+
+  manageCollaborators(entry: BlindEntry): void {
+    const dialogRef = this.dialog.open(CollaboratorDialog, {
+      width: '380px',
+      data: {
+        title: entry.title,
+        users: entry.users,
+        id: entry.id
+      }
+    });
+
+  dialogRef.afterClosed().subscribe(updatedUsers => {
+    if (updatedUsers) {
+      entry.users = updatedUsers;
+    }
+  });
   }
 }

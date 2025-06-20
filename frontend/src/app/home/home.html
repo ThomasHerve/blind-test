@@ -1,5 +1,5 @@
 
-<div class="container">
+<div class="container" *ngIf="connected">
   <h2>Mes Blind Tests</h2>
 
   <mat-list *ngIf="entries.length > 0; else noEntries">
@@ -18,6 +18,15 @@
       >
         <mat-icon>delete</mat-icon>
       </button>
+      <button
+        *ngIf="entry.isOwner"
+        mat-icon-button
+        matListItemMeta
+        aria-label="Supprimer"
+        (click)="manageCollaborators(entry); $event.stopPropagation()"
+      >
+        <mat-icon>person</mat-icon>
+      </button>
     </mat-list-item>
   </mat-list>
 
@@ -34,4 +43,7 @@
   >
     <mat-icon>add</mat-icon>
   </button>
+</div>
+<div class="container" *ngIf="!connected">
+  <h1>Connectez vous pour utiliser le site</h1>
 </div>

@@ -7,6 +7,8 @@ import { User } from '../shared/user/user';
 export interface BlindEntry {
   id: string;    // identifiant unique (timestamp ou UUID)
   title: string;  // nom de l’entrée
+  isOwner: boolean,
+  users: string[]
 }
 
 @Injectable({
@@ -89,11 +91,39 @@ export class BlindService {
   }*/
 
   remove(id: string): Observable<boolean> {
-    return this.http.delete<boolean>(`${this.apiUrl}/blinds/create/` + id, {
+    return this.http.delete<boolean>(`${this.apiUrl}/blinds/delete/` + id, {
     headers: new HttpHeaders({
       'Authorization': `Bearer ${User.getAccessToken()}`
     })
   }).pipe(catchError((error: any) => { throw this.handleError(error) }));
+  }
+
+  addCollaborator(username: string, id: number) {
+    return this.http.post<boolean>(`${this.apiUrl}/blinds/addCollaborator`,
+      {
+        id: id,
+        username: username
+      }
+      ,{
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${User.getAccessToken()}`
+      })
+    });
+
+  } 
+
+  removeCollaborator(username: string, id: number) {
+    return this.http.delete<boolean>(`${this.apiUrl}/blinds/removeCollaborator`, 
+    {
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${User.getAccessToken()}`
+      }),
+      body: {
+        id: id,
+        username: username
+      }
+    }).pipe(catchError((error: any) => { throw this.handleError(error) }));
+
   }
 
   private handleError(error: any): any {
