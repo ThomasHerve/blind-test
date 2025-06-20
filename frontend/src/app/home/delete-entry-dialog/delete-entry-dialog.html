@@ -1,4 +1,4 @@
-<div *ngIf="owner">
+<div *ngIf="data.owner">
   <h2 mat-dialog-title style="text-align: center;">Supprimer le blind test</h2>
 
   <div style="text-align: center; margin: 16px 0; font-weight: bold; color: red;">
@@ -16,7 +16,7 @@
   </mat-dialog-actions>
 </div>
 
-<div *ngIf="!owner">
+<div *ngIf="!data.owner">
   <h2 mat-dialog-title style="text-align: center;">Quitter le blind test</h2>
 
   <mat-dialog-actions align="center" style="margin-top: 16px;">

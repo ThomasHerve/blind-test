@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { Component, Inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,7 +12,7 @@ export interface DeleteEntryData {
 
 @Component({
   selector: 'app-delete-entry-dialog',
-  imports: [MatDialogModule, FormsModule, MatFormFieldModule, MatButtonModule],
+  imports: [MatDialogModule, FormsModule, MatFormFieldModule, MatButtonModule, CommonModule],
   templateUrl: './delete-entry-dialog.html',
   styleUrl: './delete-entry-dialog.css'
 })

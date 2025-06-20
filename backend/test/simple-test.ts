@@ -147,7 +147,7 @@ my_post("http://localhost:3000/users/login", {
     //get("http://localhost:3000/blinds/get", token).then(console.log)
 
     // collab
-    
+    /*
     my_post("http://localhost:3000/blinds/addCollaborator", {
       id: 1,
       username: "test1"
@@ -166,4 +166,7 @@ my_post("http://localhost:3000/users/login", {
         my_get("http://localhost:3000/blinds/get", token).then(console.log)
       })
     })})
+      */
+
+    
   })
