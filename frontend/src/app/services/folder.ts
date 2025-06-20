@@ -59,7 +59,7 @@ export class Folder {
     return newNode;
   }
 
-  addMusic(blindId: string, name: string, parentId: string | null = null, url: string, id: string): FolderNode {
+  addMusic(blindId: string, name: string, parentId: string | null = null, url: string): FolderNode {
     const tree = this.getTree(blindId);
     let parent = undefined
     if (parentId) {
