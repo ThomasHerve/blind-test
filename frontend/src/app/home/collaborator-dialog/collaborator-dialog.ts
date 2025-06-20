@@ -45,6 +45,7 @@ export class CollaboratorDialog {
       next: () => {
         this.users.push(username);
         this.newUsername = '';
+        this.cd.detectChanges();
       },
       error: err => {
         if (err.status === 404) {

@@ -6,7 +6,7 @@ import { MatFormFieldModule  } from '@angular/material/form-field';
 
 
 export interface DeleteEntryData {
-  delete: boolean;
+  owner: boolean;
 }
 
 @Component({

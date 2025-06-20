@@ -84,6 +84,7 @@ export class Home implements OnInit {
   deleteEntry(entry: BlindEntry): void {
     const dialogRef = this.dialog.open(DeleteEntryDialog, {
       width: '380px',
+      data: {owner: entry.isOwner}
     });
 
     dialogRef.afterClosed().subscribe(result => {

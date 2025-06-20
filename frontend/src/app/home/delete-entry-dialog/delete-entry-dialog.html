@@ -1,15 +1,32 @@
-<h2 mat-dialog-title style="text-align: center;">Supprimer le blind test</h2>
+<div *ngIf="owner">
+  <h2 mat-dialog-title style="text-align: center;">Supprimer le blind test</h2>
 
-<div style="text-align: center; margin: 16px 0; font-weight: bold; color: red;">
-  CETTE ACTION EST IRREVERSIBLE
+  <div style="text-align: center; margin: 16px 0; font-weight: bold; color: red;">
+    CETTE ACTION EST IRREVERSIBLE
+  </div>
+
+  <mat-dialog-actions align="center" style="margin-top: 16px;">
+    <button
+      mat-button
+      color="primary"
+      [mat-dialog-close]="true"
+    >
+      Supprimer
+    </button>
+  </mat-dialog-actions>
 </div>
 
-<mat-dialog-actions align="center" style="margin-top: 16px;">
-  <button
-    mat-button
-    color="primary"
-    [mat-dialog-close]="true"
-  >
-    Supprimer
-  </button>
-</mat-dialog-actions>
+<div *ngIf="!owner">
+  <h2 mat-dialog-title style="text-align: center;">Quitter le blind test</h2>
+
+  <mat-dialog-actions align="center" style="margin-top: 16px;">
+    <button
+      mat-button
+      color="primary"
+      [mat-dialog-close]="true"
+    >
+      Quitter
+    </button>
+  </mat-dialog-actions>
+</div>
+
