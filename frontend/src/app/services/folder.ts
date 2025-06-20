@@ -59,7 +59,7 @@ export class Folder {
     return newNode;
   }
 
-  addMusic(blindId: string, name: string, parentId: string | null = null, url: string): FolderNode {
+  addMusic(blindId: string, name: string, parentId: string | null = null, url: string, videoId: string): FolderNode {
     const tree = this.getTree(blindId);
     let parent = undefined
     if (parentId) {
@@ -71,7 +71,7 @@ export class Folder {
       prof = parent.prof + 1
     }
 
-    const newMusic: FolderNode = { id: uuidv4(), name: name, prof: prof, url: url, videoId: id, children: [], type: folderType.MUSIC };
+    const newMusic: FolderNode = { id: uuidv4(), name: name, prof: prof, url: url, videoId: videoId, children: [], type: folderType.MUSIC };
     parent?.children.push(newMusic);
     this.saveTree(blindId, tree)
     return newMusic

@@ -24,7 +24,7 @@ export class SessionService {
 
       }
 
-      addMusic(id: number, name: string, parentId: string | null, url: string, client: Socket) {
+      addMusic(id: number, name: string, parentId: string | null, url: string, videoId: string, client: Socket) {
 
       }
 

@@ -41,7 +41,7 @@ export class SessionGateway implements OnGatewayDisconnect {
         if(message.id === undefined) {
             return "Need a blind test id" 
         }
-        this.sessionService.addMusic(message.id, message.name, message.parentId, message.url, client);
+        this.sessionService.addMusic(message.id, message.name, message.parentId, message.url, message.videoId, client);
     }
 
     @SubscribeMessage('removeNode')
