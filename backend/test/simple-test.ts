@@ -1,4 +1,5 @@
 const http = require('http');
+const io = require("socket.io-client");
 
 // utils
 function my_post(url, data, token) {
@@ -132,41 +133,87 @@ function my_get(url, token) {
   });
 }
 
+const socket = io("ws://localhost:3000", {
+  transports: ['polling', 'websocket'], 
+  reconnection: true,
+}) 
+
 my_post("http://localhost:3000/users/login", {
         username: "thomas",
         password: "thomasthomas",
     }, false).then((res)=>{
       const token = JSON.parse(res)["access_token"];
-      // owner
-      /*
-      post("http://localhost:3000/blinds/create", {
-        title: "test"
-    }, token).then(console.log);*/
-    
-    //delete_("http://localhost:3000/blinds/delete/1", token).then(console.log)
-    //get("http://localhost:3000/blinds/get", token).then(console.log)
 
-    // collab
-    /*
-    my_post("http://localhost:3000/blinds/addCollaborator", {
-      id: 1,
-      username: "test1"
-    }, token).then((res)=>{
-      console.log(res)
-    //get("http://localhost:3000/blinds/get", token).then(console.log)
-    
-
-    my_get("http://localhost:3000/blinds/get", token).then((res)=>{
-      console.log(res);
-      my_delete("http://localhost:3000/blinds/removeCollaborator",{
-        id: 1,
-        username: "test1"
-      }, token).then((res)=>{
-        console.log(res)
-        my_get("http://localhost:3000/blinds/get", token).then(console.log)
-      })
-    })})
-      */
-
+    my_get("http://localhost:3000/blinds/get", token).then((result)=>{
+      result = JSON.parse(result)
+      testSockets(result[0].id)
+    })
     
   })
+
+function testSockets(token) {
+  let BLIND_TEST_ID = token
+  console.log(token)
+  socket.on('connect', () => {
+    console.log('[Client] Connected to server');
+
+    // Join the blind test room
+    socket.emit('join', { id: BLIND_TEST_ID });
+
+    // Add a folder
+    setTimeout(() => {
+      socket.emit('addFolder', {
+        id: BLIND_TEST_ID,
+        name: 'Rock Classics',
+        parentId: undefined,
+      });
+    }, 500);
+
+    // Add a music node inside the created folder (simulate it after folder is added)
+    socket.on('folderAdded', (folder) => {
+      console.log('[Client] Folder added:', folder);
+
+      socket.emit('addMusic', {
+        id: BLIND_TEST_ID,
+        name: 'Bohemian Rhapsody',
+        parentId: folder.id.toString(),
+        url: 'https://example.com/audio.mp3',
+        videoId: 'abc123',
+      });
+    });
+
+    socket.on('musicAdded', (music) => {
+      console.log('[Client] Music added:', music);
+
+      // Rename the music
+      socket.emit('renameNode', {
+        id: BLIND_TEST_ID,
+        nodeId: music.id.toString(),
+        newName: 'Bohemian Rhapsody - Remastered',
+      });
+    });
+
+    socket.on('nodeRenamed', (renamed) => {
+      console.log('[Client] Node renamed:', renamed);
+
+      // Now remove the node
+      socket.emit('removeNode', {
+        id: BLIND_TEST_ID,
+        nodeId: renamed.id.toString(),
+      });
+    });
+
+    socket.on('nodeRemoved', (payload) => {
+      console.log('[Client] Node removed:', payload);
+      socket.disconnect();
+    });
+
+    socket.on('error', (err) => {
+      console.error('[Client] Error from server:', err);
+    });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('[Client] Disconnected');
+  });
+}
