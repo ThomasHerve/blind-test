@@ -26,13 +26,19 @@ export class SessionService {
       throw new NotFoundException('Blind test not found');
     }
     const toSend : any = []
-    blind?.entries.filter((node)=>{
-      return node.parent == undefined
+    blind?.entries.forEach(async (node)=>{
+      const instance = await this.NodeRepository.findOne({where: { id: node.id }, relations: ['blind', 'parent', 'childrens']});
+      console.log(instance)
+    })
+
+    blind?.entries.filter(async (node)=>{
+      const instance = await this.NodeRepository.findOne({where: { id: node.id }, relations: ['blind', 'parent', 'childrens']});
+      return instance.parent == undefined
     }).forEach((node)=>{
       toSend.push(this.buildTree(node));
     })
 
-    console.log(toSend)
+    //console.log(toSend)
 
     this.rooms[`room-${blindId}`].forEach((client)=>{
         client.emit("tree", {
