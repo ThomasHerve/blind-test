@@ -26,24 +26,31 @@ export class SessionService {
       throw new NotFoundException('Blind test not found');
     }
     const toSend : any = []
-    blind?.entries.forEach((node)=>{
+    blind?.entries.filter((node)=>{
+      return node.parent == undefined
+    }).forEach((node)=>{
       toSend.push(this.buildTree(node));
     })
 
     console.log(toSend)
-    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit("tree", {
-        blindId: blindId,
-        tree: toSend
-      })})
+
+    this.rooms[`room-${blindId}`].forEach((client)=>{
+        client.emit("tree", {
+          blindId: blindId,
+          tree: toSend
+        })
+      })
   }
 
   buildTree(node: BlindNode) : any {
     const childrens : any = []
-    if(node.childrens)
+    if(node.childrens) {
       node.childrens.forEach((node)=>{
         let res: any = this.buildTree(node)
         childrens.push(res)
       })
+    }
+
     return {
       id: node.id,
       name: node.name,
@@ -101,6 +108,8 @@ export class SessionService {
     const saved = await this.NodeRepository.save(node);
     this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('folderAdded', saved)})
     this.sendTree(blindId)
+
+    return node.id
   }
 
   async addMusic(
@@ -134,8 +143,10 @@ export class SessionService {
     }
 
     const saved = await this.NodeRepository.save(node);
-    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('musicAdded', saved)})
+    //this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('musicAdded', saved)})
     this.sendTree(blindId)
+
+    return node.id
   }
 
   async removeNode(blindId: string, nodeId: string) {
@@ -170,7 +181,7 @@ export class SessionService {
   leaveBySocket(client: Socket) {
     const blindId = this.clients[client.id];
     if (blindId) {
-      this.rooms[`room-${this.clients[client.id]}`].filter((c)=>client.id != c.id)
+      this.rooms[`room-${this.clients[client.id]}`] = this.rooms[`room-${this.clients[client.id]}`].filter((c)=>client.id != c.id)
       delete this.clients[client.id];
     }
   }

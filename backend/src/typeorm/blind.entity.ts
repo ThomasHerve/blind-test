@@ -28,7 +28,6 @@ export class BlindEntry {
 }
 
 @Entity()
-@Unique(['name', 'blind'])
 export class BlindNode {
   @PrimaryGeneratedColumn({
     type: 'bigint',

@@ -85,8 +85,8 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         sessionId,
         payload.name.trim(),
         payload.parentId,
-      ).then(()=>{
-        client.emit('folderAdded', { parentId: payload.parentId });
+      ).then((id)=>{
+        client.emit('folderAdded', { parentId: payload.parentId, id: id });
       });
   }
 
@@ -107,8 +107,8 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         payload.parentId,
         payload.url.trim(),
         payload.videoId.trim(),
-      ).then(()=>{
-        client.emit('musicAdded', { parentId: payload.parentId });
+      ).then((id)=>{
+        client.emit('musicAdded', { parentId: payload.parentId, id: id });
       });
   }
 

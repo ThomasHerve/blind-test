@@ -169,18 +169,20 @@ function testSockets(token) {
       });
     }, 500);
 
+    
     // Add a music node inside the created folder (simulate it after folder is added)
     socket.on('folderAdded', (folder) => {
       console.log('[Client] Folder added:', folder);
-
       socket.emit('addMusic', {
         id: BLIND_TEST_ID,
         name: 'Bohemian Rhapsody',
-        parentId: folder.id.toString(),
+        parentId: folder.id,
         url: 'https://example.com/audio.mp3',
         videoId: 'abc123',
       });
     });
+    */
+    /*
 
     socket.on('musicAdded', (music) => {
       console.log('[Client] Music added:', music);
@@ -207,11 +209,11 @@ function testSockets(token) {
       console.log('[Client] Node removed:', payload);
       socket.disconnect();
     });
-
+*/
     socket.on('error', (err) => {
       console.error('[Client] Error from server:', err);
     });
-    */
+    
    
     
   // Callbacks
