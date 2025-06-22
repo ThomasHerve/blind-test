@@ -154,12 +154,12 @@ my_post("http://localhost:3000/users/login", {
 function testSockets(token) {
   let BLIND_TEST_ID = token
   console.log(token)
-  socket.on('connect', () => {
-    console.log('[Client] Connected to server');
+  console.log('[Client] Connected to server');
 
-    // Join the blind test room
-    socket.emit('join', { id: BLIND_TEST_ID });
+  // Join the blind test room
+  socket.emit('join', { id: BLIND_TEST_ID });
 
+    /*
     // Add a folder
     setTimeout(() => {
       socket.emit('addFolder', {
@@ -211,7 +211,12 @@ function testSockets(token) {
     socket.on('error', (err) => {
       console.error('[Client] Error from server:', err);
     });
-  });
+    */
+   
+    
+  // Callbacks
+
+  socket.on("tree", console.log)
 
   socket.on('disconnect', () => {
     console.log('[Client] Disconnected');

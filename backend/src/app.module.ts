@@ -8,6 +8,7 @@ import entities from './typeorm';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './users/services/users/jwt-auth.guard';
 import { BlindModule } from './blind/blind.module';
+import { SessionModule } from './session/session.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { BlindModule } from './blind/blind.module';
       inject: [ConfigService],
     }),
     UsersModule,
-    BlindModule  
+    BlindModule,
+    SessionModule  
   ],
   controllers: [AppController],
   providers: [{

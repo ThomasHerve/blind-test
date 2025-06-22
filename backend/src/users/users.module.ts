@@ -15,6 +15,7 @@ import { JwtStrategy } from './services/users/jwt.strategy';
     signOptions: { expiresIn: '36000000s' },
   })],
   controllers: [UsersController],
-  providers: [UsersService, LocalStrategy, JwtStrategy]
+  providers: [UsersService, LocalStrategy, JwtStrategy],
+  exports: [UsersService]
 })
 export class UsersModule {}
