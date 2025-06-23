@@ -83,18 +83,9 @@ export class BlindService {
 
   }
 
- downloadTree(blindId: string): Observable<Blob> {
-    const url = `${this.apiUrl}/blinds/${blindId}/download`;
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${User.getAccessToken()}`
-    });
-
-    return this.http.get(url, {
-      headers,
-      responseType: 'blob'  // <-- on attend un Blob
-    }).pipe(
-      catchError(err => { throw this.handleError(err); })
-    );
+  downloadTree(blindId: string) {
+    const url = `${this.apiUrl}/youtube/${blindId}/download`;
+    window.open(url, '_blank');
   }
 
   private handleError(error: any): any {

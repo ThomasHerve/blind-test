@@ -2,18 +2,24 @@
 import { Controller, Get, Param, Res, NotFoundException } from '@nestjs/common';
 import { Response } from 'express';
 import * as archiver from 'archiver';
-import * as ytdl from 'ytdl-core';
+//import * as ytdl from 'ytdl-core';
 import { BlindEntry, BlindNode } from 'src/typeorm/blind.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Public } from 'src/users/services/users/public.decorator';
+import  *  as ytdlp from 'yt-dlp-wrap';
 
 @Controller('youtube')
 export class DownloadController {
+
+  private dl = new ytdlp.default()
+
   constructor(
     @InjectRepository(BlindEntry) private readonly blindEntriesRepo: Repository<BlindEntry>,
     @InjectRepository(BlindNode) private readonly nodeRepo: Repository<BlindNode>,
   ) {}
 
+  @Public()
   @Get(':id/download')
   async downloadZip(@Param('id') id: string, @Res() res: Response) {
     const blindId = parseInt(id, 10);
@@ -44,10 +50,19 @@ export class DownloadController {
         const filename = `${folderPath}${node.name.replace(/[\/\\]/g, '_')}.mp4`;
         const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
         // on ajoute le flux de ytdl dans l’archive
+        /*
         archive.append(
           ytdl(ytUrl, { filter: 'audioandvideo' }),
           { name: filename }
-        );
+        );*/
+        const stream = await this.dl.execStream([
+          ytUrl,
+          '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
+          '-o', '-',      // envoie sur stdout
+        ]).on((res)=>{
+          
+        });
+        archive.append(stream., { name: filename });
       }
       // traite les enfants
       if (node.childrens && node.childrens.length > 0) {
