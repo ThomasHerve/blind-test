@@ -218,9 +218,22 @@ function testSockets(token) {
     
   // Callbacks
 
-  socket.on("tree", console.log)
+  socket.on("tree", (tree) => tree.tree.forEach((element)=>displaytree(element, 0)))
 
   socket.on('disconnect', () => {
     console.log('[Client] Disconnected');
   });
+}
+
+function displaytree(tree, prof) {
+  let spaces = ""
+  for(let i = 0; i < prof; i++) {
+    spaces+=" "
+  }
+  console.log(spaces+tree.name)
+  if(tree.childrens) {
+    tree.childrens.forEach(element => {
+      displaytree(element, prof+1)
+    });
+  }
 }

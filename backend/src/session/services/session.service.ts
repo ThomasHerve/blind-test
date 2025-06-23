@@ -25,54 +25,48 @@ export class SessionService {
     if (!blind) {
       throw new NotFoundException('Blind test not found');
     }
-    const toSend : any = []
-    /*
-    blind?.entries.forEach(async (node)=>{
-      const instance = await this.NodeRepository.findOne({where: { id: node.id }, relations: ['blind', 'parent', 'childrens']});
-      console.log(instance)
-    })*/
 
-    const promises = blind?.entries.map(node => 
-      this.NodeRepository
-        .findOne({ where: { id: node.id }, relations: ['blind', 'parent', 'childrens'] })
-        .then(instance => {
-          if (instance && instance.parent == null) {
-            toSend.push(this.buildTree(node));
-          }
-        })
-    ) || [];
+    const treeResults = await Promise.all(
+      blind.entries.map(async node => {
+        const instance = await this.NodeRepository.findOne({where: { id: node.id }, relations: ['blind', 'parent', 'childrens']});
+        if (instance && instance.parent == null) {
+          return this.buildTree(node);
+        }
+        return null;
+      })
+    );
 
-    Promise.all(promises).then(() => {
-      // ici, toutes les requêtes sont terminées
-      this.rooms[`room-${blindId}`].forEach(client => {
-        client.emit("tree", {
-          blindId,
-          tree: toSend
-        });
-      });
+    const toSend = treeResults.filter(tree => tree !== null);
+
+    this.rooms[`room-${blindId}`].forEach(client => {
+      client.emit("tree", { blindId: blindId, tree: toSend });
     });
   }
 
-  async buildTree(node: BlindNode) : Promise<any> {
-    const node_childrens = await this.NodeRepository.findOne({ where: { id: node.id }, relations: ['blind', 'parent', 'childrens'] })
-    const childrens: any[] = []
-    if(node_childrens) {
-      node_childrens.childrens.forEach((node)=>{
-        let res: any = this.buildTree(node)
-        childrens.push(res)
-      })
-    }
+async buildTree(node: BlindNode): Promise<any> {
+  const instance = await this.NodeRepository.findOne({
+    where: { id: node.id },
+    relations: ['blind', 'parent', 'childrens']
+  });
 
-    return {
-      id: node.id,
-      name: node.name,
-      url: node.url,
-      childrens: childrens,
-      prof: node.prof,
-      type: node.type,
-      videoId: node.videoId
-    }
+  if (!instance) {
+    return null;
   }
+
+  const childrens = await Promise.all(
+    instance.childrens.map(child => this.buildTree(child))
+  );
+
+  return {
+    id:          instance.id,
+    name:        instance.name,
+    url:         instance.url,
+    childrens:   childrens,
+    prof:        instance.prof,
+    type:        instance.type,
+    videoId:     instance.videoId
+  };
+}
 
   async join(blindId: string, client: Socket) {
     const blind = await this.BlindEntriesRepository.findOne({
