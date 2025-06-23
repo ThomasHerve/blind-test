@@ -45,7 +45,7 @@ spec:
     server: 'https://kubernetes.default.svc'
   project: blind-test
   source:
-    repoURL: 'git@github.com:ThomasHerve/tournament-helm.git'
+    repoURL: 'git@github.com:ThomasHerve/blind-test.git'
     path: helm/postgresql
     targetRevision: main
     helm:
@@ -67,7 +67,7 @@ spec:
     server: 'https://kubernetes.default.svc'
   project: blind-test
   source:
-    repoURL: git@github.com:ThomasHerve/tournament-helm.git
+    repoURL: git@github.com:ThomasHerve/blind-test.git
     path: helm/frontend
     targetRevision: main
     helm:
