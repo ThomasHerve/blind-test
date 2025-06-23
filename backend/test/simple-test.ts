@@ -31,7 +31,7 @@ function my_post(url, data, token) {
           return reject(new Error(`HTTP status code ${res.statusCode}: ${res.statusMessage}`))
         }
   
-        let body = []
+        let body:any[] = []
         res.on('data', (chunk) => body.push(chunk))
         res.on('end', () => {
           const resString = Buffer.concat(body).toString()
@@ -81,7 +81,7 @@ function my_post(url, data, token) {
           return reject(new Error(`HTTP status code ${res.statusCode}`))
         }
   
-        let body = []
+        let body:any[] = []
         res.on('data', (chunk) => body.push(chunk))
         res.on('end', () => {
           const resString = Buffer.concat(body).toString()
@@ -141,12 +141,12 @@ const socket = io("ws://localhost:3000", {
 my_post("http://localhost:3000/users/login", {
         username: "thomas",
         password: "thomasthomas",
-    }, false).then((res)=>{
+    }, false).then((res: string)=>{
       const token = JSON.parse(res)["access_token"];
 
-    my_get("http://localhost:3000/blinds/get", token).then((result)=>{
-      result = JSON.parse(result)
-      testSockets(result[0].id)
+    my_get("http://localhost:3000/blinds/get", token).then((result:string)=>{
+      const r: any = JSON.parse(result)
+      testSockets(r[0].id)
     })
     
   })
