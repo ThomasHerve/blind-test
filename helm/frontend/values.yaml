@@ -10,7 +10,7 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
-backend-url: blind-test-backend.thomas-herve.fr
+backend_url: blind-test-backend.thomas-herve.fr
 
 nameOverride: ""
 fullnameOverride: ""

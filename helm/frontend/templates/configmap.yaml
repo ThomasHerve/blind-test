@@ -5,7 +5,7 @@ metadata:
 data:
   env.ts: |-
     window.__env = {
-      apiUrl: "https://{{ .Values.backend-url }}",
-      socketUrl: "wss://{{ .Values.backend-url }}"
+      apiUrl: "https://{{ .Values.backend_url }}",
+      socketUrl: "wss://{{ .Values.backend_url }}"
     };
 
