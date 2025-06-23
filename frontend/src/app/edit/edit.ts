@@ -51,7 +51,7 @@ export class Edit implements OnInit {
   constructor(
     private cd: ChangeDetectorRef,
     private sanitizer: DomSanitizer,
-    private folderService: FolderService
+    private folderService: FolderService,
   ) {}
 
   ngOnInit(): void {
@@ -77,7 +77,7 @@ export class Edit implements OnInit {
   hasChild = (_: number, node: FolderNode) => !!node.childrens && node.childrens.length > 0;
 
   downloadTree() {
-    
+    this.blindService.downloadTree(this.blindId)
   }
 
   addFolder(parent: FolderNode | null): void {

@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './users/services/users/jwt-auth.guard';
 import { BlindModule } from './blind/blind.module';
 import { SessionModule } from './session/session.module';
+import { DownloadModule } from './download/download.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { SessionModule } from './session/session.module';
     }),
     UsersModule,
     BlindModule,
+    DownloadModule,
     SessionModule  
   ],
   controllers: [AppController],
