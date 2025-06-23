@@ -17,13 +17,18 @@ export class SessionService {
     private readonly userService: UsersService
   ) {}
 
-  async sendTree(blindId: string) {
+  sendError(message: string, client: Socket) {
+    client.emit("error", message)
+  }
+
+  async sendTree(blindId: string, client: Socket) {
     const blind = await this.BlindEntriesRepository.findOne({
       where: { id: parseInt(blindId) },
       relations: ['entries'],
     });
     if (!blind) {
-      throw new NotFoundException('Blind test not found');
+      this.sendError('Blind test not found', client);
+      return;
     }
 
     const treeResults = await Promise.all(
@@ -75,7 +80,8 @@ async buildTree(node: BlindNode): Promise<any> {
     });
 
     if (!blind) {
-      throw new NotFoundException('Blind test not found');
+      this.sendError('Blind test not found', client);
+      return;
     }
 
     this.clients[client.id] = blindId;
@@ -83,13 +89,16 @@ async buildTree(node: BlindNode): Promise<any> {
       this.rooms[`room-${blindId}`] = []
     }
     this.rooms[`room-${blindId}`].push(client)
-    this.sendTree(blindId)
+    this.sendTree(blindId, client)
     this.logger.log(`Client ${client.id} joined room ${blindId}`);
   }
 
-  async addFolder(blindId: string, name: string, parentId: string | undefined) {
+  async addFolder(blindId: string, name: string, parentId: string | undefined, client: Socket) {
     const blind = await this.BlindEntriesRepository.findOneBy({ id: parseInt(blindId) });
-    if (!blind) throw new NotFoundException('Blind test not found');
+    if (!blind) {
+      this.sendError('Blind test not found', client);
+      return;
+    } 
 
     const node = new BlindNode();
     node.name = name;
@@ -101,7 +110,10 @@ async buildTree(node: BlindNode): Promise<any> {
 
     if (parentId) {
       const parent = await this.NodeRepository.findOneBy({ id: parseInt(parentId) });
-      if (!parent) throw new NotFoundException('Parent node not found');
+      if (!parent){
+        this.sendError('Parent node not found', client);
+        return;
+      }
       node.parent = parent;
       node.prof = parent.prof + 1;
       if(!parent.childrens)
@@ -113,7 +125,7 @@ async buildTree(node: BlindNode): Promise<any> {
 
     const saved = await this.NodeRepository.save(node);
     this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('folderAdded', saved)})
-    this.sendTree(blindId)
+    this.sendTree(blindId, client)
 
     return node.id
   }
@@ -124,9 +136,13 @@ async buildTree(node: BlindNode): Promise<any> {
     parentId: string | undefined,
     url: string,
     videoId: string,
+    client: Socket
   ) {
     const blind = await this.BlindEntriesRepository.findOneBy({ id: parseInt(blindId) });
-    if (!blind) throw new NotFoundException('Blind test not found');
+    if (!blind) {
+      this.sendError('Blind test not found', client);
+      return;
+    }
 
     const node = new BlindNode();
     node.name = name;
@@ -138,7 +154,10 @@ async buildTree(node: BlindNode): Promise<any> {
 
     if (parentId) {
       const parent = await this.NodeRepository.findOneBy({ id: parseInt(parentId) });
-      if (!parent) throw new NotFoundException('Parent node not found');
+      if (!parent) {
+        this.sendError('Parent node not found', client);
+        return;
+      }
       node.parent = parent;
       node.prof = parent.prof + 1;
       if(!parent.childrens)
@@ -149,39 +168,44 @@ async buildTree(node: BlindNode): Promise<any> {
     }
 
     const saved = await this.NodeRepository.save(node);
-    //this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('musicAdded', saved)})
-    this.sendTree(blindId)
-
-    return node.id
+    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('musicAdded', {
+      name: saved.name,
+      id: saved.id,
+      videoId: saved.videoId,
+      url: saved.url
+    })})
+    this.sendTree(blindId, client)
   }
 
-  async removeNode(blindId: string, nodeId: string) {
+  async removeNode(blindId: string, nodeId: string, client: Socket) {
     const node = await this.NodeRepository.findOne({
       where: { id: parseInt(nodeId) },
       relations: ['blind'],
     });
-    if (!node || node.blind.id !== parseInt(blindId)) {
-      throw new NotFoundException('Node not found or does not belong to blind test');
+    if (!node || node.blind.id != parseInt(blindId)) {
+      this.sendError('Node not found or does not belong to blind test', client);
+      return;
     }
 
     await this.NodeRepository.remove(node);
     this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeRemoved', { nodeId })})
-    this.sendTree(blindId)
+    this.sendTree(blindId, client)
   }
 
-  async renameNode(blindId: string, nodeId: string, newName: string) {
+  async renameNode(blindId: string, nodeId: string, newName: string, client: Socket) {
     const node = await this.NodeRepository.findOne({
       where: { id: parseInt(nodeId) },
       relations: ['blind'],
     });
-    if (!node || node.blind.id !== parseInt(blindId)) {
-      throw new NotFoundException('Node not found or does not belong to blind test');
+    if (!node || node.blind.id != parseInt(blindId)) {
+      this.sendError('Node not found or does not belong to blind test', client);
+      return;
     }
 
     node.name = newName;
     const updated = await this.NodeRepository.save(node);
     this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeRenamed', updated)})
-    this.sendTree(blindId)
+    this.sendTree(blindId, client)
   }
 
   leaveBySocket(client: Socket) {

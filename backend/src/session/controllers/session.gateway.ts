@@ -85,6 +85,7 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         sessionId,
         payload.name.trim(),
         payload.parentId,
+        client
       )
   }
 
@@ -105,6 +106,7 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         payload.parentId,
         payload.url.trim(),
         payload.videoId.trim(),
+        client
       )
   }
 
@@ -120,6 +122,7 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
       this.sessionService.removeNode(
         sessionId,
         payload.nodeId,
+        client
       )
       
   }
@@ -140,6 +143,7 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         sessionId,
         payload.nodeId,
         payload.newName.trim(),
+        client
       )
   }
 }

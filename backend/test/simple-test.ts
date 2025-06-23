@@ -159,7 +159,7 @@ function testSockets(token) {
   // Join the blind test room
   socket.emit('join', { id: BLIND_TEST_ID });
 
-    /*
+    
     // Add a folder
     setTimeout(() => {
       socket.emit('addFolder', {
@@ -177,13 +177,13 @@ function testSockets(token) {
         id: BLIND_TEST_ID,
         name: 'Bohemian Rhapsody',
         parentId: folder.id,
-        url: 'https://example.com/audio.mp3',
-        videoId: 'abc123',
+        url: 'https://www.youtube.com/watch?v=yk3prd8GER4',
+        videoId: 'yk3prd8GER4',
       });
     });
-    */
     
-/*
+    
+
     socket.on('musicAdded', (music) => {
       console.log('[Client] Music added:', music);
 
@@ -213,12 +213,14 @@ function testSockets(token) {
     socket.on('error', (err) => {
       console.error('[Client] Error from server:', err);
     });
-    */
-   
     
   // Callbacks
 
-  socket.on("tree", (tree) => tree.tree.forEach((element)=>displaytree(element, 0)))
+  socket.on("tree", (tree) => tree.tree.forEach((element)=>{
+    console.log("-------");
+    displaytree(element, 0);
+    console.log("-------");
+  }))
 
   socket.on('disconnect', () => {
     console.log('[Client] Disconnected');
