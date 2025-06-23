@@ -37,8 +37,7 @@ export class FolderService {
     this.socket.on('error', (err: any) => console.error('Socket error:', err));
   }
 
-  init(blindId: string, token: string): void {
-    this.socket.io.opts.extraHeaders = { Authorization: `Bearer ${token}` };
+  init(blindId: string, ): void {
     this.socket.emit('join', { id: blindId });
   }
 

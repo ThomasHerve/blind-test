@@ -63,6 +63,7 @@ export class Edit implements OnInit {
   }
 
   loadTree(): void {
+    this.folderService.init(this.blindId)
     this.folderService.tree$.subscribe((next)=>{
       this.dataSource = next
       this.treeControl.dataNodes = next;
