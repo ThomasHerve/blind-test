@@ -31,7 +31,7 @@ function my_post(url, data, token) {
           return reject(new Error(`HTTP status code ${res.statusCode}: ${res.statusMessage}`))
         }
   
-        let body:any[] = []
+        let body = []
         res.on('data', (chunk) => body.push(chunk))
         res.on('end', () => {
           const resString = Buffer.concat(body).toString()
@@ -81,7 +81,7 @@ function my_post(url, data, token) {
           return reject(new Error(`HTTP status code ${res.statusCode}`))
         }
   
-        let body:any[] = []
+        let body = []
         res.on('data', (chunk) => body.push(chunk))
         res.on('end', () => {
           const resString = Buffer.concat(body).toString()
@@ -141,15 +141,27 @@ const socket = io("ws://localhost:3000", {
 my_post("http://localhost:3000/users/login", {
         username: "thomas",
         password: "thomasthomas",
-    }, false).then((res: string)=>{
+    }, false).then((res)=>{
       const token = JSON.parse(res)["access_token"];
 
-    my_get("http://localhost:3000/blinds/get", token).then((result:string)=>{
-      const r: any = JSON.parse(result)
-      testSockets(r[0].id)
+    my_get("http://localhost:3000/blinds/get", token).then((result)=>{
+      const r = JSON.parse(result)
+      //testSockets(r[0].id)
+      testYoutube();
     })
     
   })
+
+function testYoutube() {
+  socket.on("youtube", (res) => {
+    res.items.forEach(element => {
+      console.log(element.snippet)
+    });
+  })
+  socket.emit("youtube", {
+    query: "gims - ciel"
+  })
+}
 
 function testSockets(token) {
   let BLIND_TEST_ID = token

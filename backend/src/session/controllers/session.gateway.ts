@@ -12,6 +12,9 @@ import {
 import { Namespace, Socket } from 'socket.io';
 import { SessionService } from '../services/session.service';
 
+interface YoutubeMessage {
+  query: string;
+}
 interface BaseMessage {
   id: string;
 }
@@ -145,5 +148,16 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         payload.newName.trim(),
         client
       )
+  }
+
+  @SubscribeMessage('youtube')
+  youtubeQuery(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: YoutubeMessage,
+  ) {
+      if (typeof payload.query !== 'string' || payload.query.length == 0) {
+        throw new WsException({ status: HttpStatus.BAD_REQUEST, message: 'Invalid query' });
+      }
+      this.sessionService.searchVideos(payload.query, client)
   }
 }

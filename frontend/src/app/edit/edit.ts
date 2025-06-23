@@ -69,9 +69,8 @@ export class Edit implements OnInit {
       this.dataSource.data = next
       this.treeControl.dataNodes = next;
       this.treeControl.expandAll();
+      console.log(next)
       this.cd.detectChanges();
-      console.log(this.treeControl)
-      console.log(this.dataSource.data)
     })
   }
 
@@ -101,8 +100,7 @@ export class Edit implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((video: {url: string, title: string, id: string}) => {
-      console.log(video)
-      if (video.url) {
+      if (video && video.url) {
         console.log('URL sélectionnée:', video.url);
         this.folderService.addMusic(this.blindId, video.title, video.url, video.id, parent?.id);
         this.loadTree();

@@ -10,6 +10,7 @@ import { FormsModule } from '@angular/forms';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { FolderService } from '../../services/folder';
 
 @Component({
   selector: 'app-add-music-dialog',
@@ -23,24 +24,29 @@ export class AddMusicDialog {
   previewUrl: SafeResourceUrl | null = null;
 
   constructor(
-    private yt: Youtube,
     private dialogRef: MatDialogRef<AddMusicDialog>,
     private cd: ChangeDetectorRef,
     private sanitizer: DomSanitizer,
+    private folderService: FolderService,
     @Inject(MAT_DIALOG_DATA) public data: any
-  ) {}
+  ) {
+    this.folderService.youtube$.subscribe(resp => {
+      if(resp) {
+        this.results = resp.items.map(item => ({
+          videoId: item.id.videoId,
+          title: item.snippet.title,
+          thumbnail: item.snippet.thumbnails.high.url || item.snippet.thumbnails.default.url
+        })); 
+        this.cd.detectChanges();
+      }
+    });
+  }
 
   onSearch(): void {
     this.previewId = null;
     this.results = [];
     if (!this.searchTerm.trim()) return;
-    this.yt.searchVideos(this.searchTerm).subscribe(resp => {
-      this.results = resp.items.map(item => ({
-        videoId: item.id.videoId,
-        title: item.snippet.title,
-        thumbnail: item.snippet.thumbnails.high.url || item.snippet.thumbnails.default.url
-      })); this.cd.detectChanges();
-    });
+    this.folderService.searchVideos(this.searchTerm);
   }
 
   togglePreview(videoId: string): void {

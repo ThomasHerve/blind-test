@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BlindEntry, BlindNode } from 'src/typeorm/blind.entity';
 import { UsersModule } from 'src/users/users.module';
 import { User } from 'src/typeorm';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   controllers: [],
@@ -14,6 +15,10 @@ import { User } from 'src/typeorm';
   imports: [
     TypeOrmModule.forFeature([BlindEntry, BlindNode, User]),
     UsersModule,
+    HttpModule.register({
+      baseURL: 'https://www.googleapis.com/youtube/v3',
+      timeout: 5000,
+    }),
   ],
 })
 export class SessionModule {}

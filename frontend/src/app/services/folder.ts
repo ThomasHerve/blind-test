@@ -14,11 +14,20 @@ export interface FolderNode {
   videoId: string;
 }
 
+interface YouTubeSearchResponse {
+  items: Array<{
+    id: { videoId: string };
+    snippet: { title: string; thumbnails: any };
+  }>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class FolderService {
   private socket: Socket;
   private treeSubject = new BehaviorSubject<FolderNode[]>([]);
   public tree$ = this.treeSubject.asObservable();
+  public youtubeSubject = new BehaviorSubject<YouTubeSearchResponse | null>(null);
+  public youtube$ = this.youtubeSubject.asObservable();
   private apiUrl = '';
 
   constructor(private http: HttpClient, private envService: RuntimeEnv) {
@@ -30,9 +39,12 @@ export class FolderService {
 
     // Listen for real-time tree updates
     this.socket.on('tree', (payload: { tree: FolderNode[] }) => {
-      console.log(payload.tree)
       this.treeSubject.next(payload.tree);
     });
+
+    this.socket.on("youtube", (payload =>{
+      this.youtubeSubject.next(payload)
+    }))
 
     this.socket.on('error', (err: any) => console.error('Socket error:', err));
   }
@@ -69,5 +81,9 @@ export class FolderService {
 
   disconnect(): void {
     this.socket.disconnect();
+  }
+
+  searchVideos(query: string) {
+    this.socket.emit("youtube", {query: query});
   }
 }

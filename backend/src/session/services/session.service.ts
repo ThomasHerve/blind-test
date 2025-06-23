@@ -4,21 +4,72 @@ import { Repository } from 'typeorm';
 import { BlindEntry, BlindNode } from 'src/typeorm/blind.entity';
 import { UsersService } from 'src/users/services/users/users.service';
 import { Socket } from 'socket.io';
+import { ConfigService } from '@nestjs/config';
+import { HttpService } from '@nestjs/axios';
+import { catchError, firstValueFrom, map } from 'rxjs';
+
+
+interface YouTubeSearchResponse {
+  items: Array<{
+    id: { videoId: string };
+    snippet: { title: string; thumbnails: any };
+  }>;
+}
 
 @Injectable()
 export class SessionService {
   private readonly logger = new Logger(SessionService.name);
   private clients: Record<string, string> = {}; // socket.id -> blindId
   private rooms: Record<string, Socket[]> = {} // blindId -> sockets[]
-
+  private readonly apiKey: string | undefined;
+  
   constructor(
     @InjectRepository(BlindEntry) private readonly BlindEntriesRepository: Repository<BlindEntry>,
     @InjectRepository(BlindNode) private readonly NodeRepository: Repository<BlindNode>,
+    private readonly config: ConfigService,
+    private readonly http: HttpService,
     private readonly userService: UsersService
-  ) {}
+  ) {
+    this.apiKey = this.config.get<string>('YOUTUBE_API_KEY');
+    if (!this.apiKey) {
+      this.logger.error('YOUTUBE_API_KEY is not defined');
+      throw new Error('YouTube API key missing');
+    }
+  }
 
   sendError(message: string, client: Socket) {
     client.emit("error", message)
+  }
+
+  async searchVideos(query: string, client: Socket, maxResults = 10) {
+    if (!query) {
+      this.sendError('query needed', client);
+      return
+    }
+
+    const params = {
+      part: 'snippet',
+      type: 'video',
+      maxResults: maxResults.toString(),
+      q: query,
+      key: this.apiKey,
+    };
+
+    try {
+      const response$ = this.http.get<YouTubeSearchResponse>('/search', { params });
+      const response = await firstValueFrom(
+        response$.pipe(
+          map(res => res.data),
+          catchError(err => {
+            this.logger.error('YouTube API error', err.response?.data || err.message);
+            throw err;
+          }),
+        ),
+      );
+      client.emit("youtube", response)
+    } catch (err) {
+        this.sendError('Youtube API error: ' + err, client);
+    }
   }
 
   async sendTree(blindId: string, client: Socket) {
@@ -109,13 +160,14 @@ async buildTree(node: BlindNode): Promise<any> {
     node.prof = 0;
 
     if (parentId) {
-      const parent = await this.NodeRepository.findOneBy({ id: parseInt(parentId) });
+      const parent = await this.NodeRepository.findOne({ where:  {id: parseInt(parentId)}, relations: ["childrens"] });
       if (!parent){
         this.sendError('Parent node not found', client);
         return;
       }
       node.parent = parent;
       node.prof = parent.prof + 1;
+      console.log(parent)
       if(!parent.childrens)
         parent.childrens = [node]
       else
@@ -154,7 +206,7 @@ async buildTree(node: BlindNode): Promise<any> {
     node.prof = 0;
 
     if (parentId) {
-      const parent = await this.NodeRepository.findOneBy({ id: parseInt(parentId) });
+      const parent = await this.NodeRepository.findOne({ where:  {id: parseInt(parentId)}, relations: ["childrens"] });
       if (!parent) {
         this.sendError('Parent node not found', client);
         return;
