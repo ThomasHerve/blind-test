@@ -26,32 +26,38 @@ export class SessionService {
       throw new NotFoundException('Blind test not found');
     }
     const toSend : any = []
+    /*
     blind?.entries.forEach(async (node)=>{
       const instance = await this.NodeRepository.findOne({where: { id: node.id }, relations: ['blind', 'parent', 'childrens']});
       console.log(instance)
-    })
+    })*/
 
-    blind?.entries.filter(async (node)=>{
-      const instance = await this.NodeRepository.findOne({where: { id: node.id }, relations: ['blind', 'parent', 'childrens']});
-      return instance.parent == undefined
-    }).forEach((node)=>{
-      toSend.push(this.buildTree(node));
-    })
-
-    //console.log(toSend)
-
-    this.rooms[`room-${blindId}`].forEach((client)=>{
-        client.emit("tree", {
-          blindId: blindId,
-          tree: toSend
+    const promises = blind?.entries.map(node => 
+      this.NodeRepository
+        .findOne({ where: { id: node.id }, relations: ['blind', 'parent', 'childrens'] })
+        .then(instance => {
+          if (instance && instance.parent == null) {
+            toSend.push(this.buildTree(node));
+          }
         })
-      })
+    ) || [];
+
+    Promise.all(promises).then(() => {
+      // ici, toutes les requêtes sont terminées
+      this.rooms[`room-${blindId}`].forEach(client => {
+        client.emit("tree", {
+          blindId,
+          tree: toSend
+        });
+      });
+    });
   }
 
-  buildTree(node: BlindNode) : any {
-    const childrens : any = []
-    if(node.childrens) {
-      node.childrens.forEach((node)=>{
+  async buildTree(node: BlindNode) : Promise<any> {
+    const node_childrens = await this.NodeRepository.findOne({ where: { id: node.id }, relations: ['blind', 'parent', 'childrens'] })
+    const childrens: any[] = []
+    if(node_childrens) {
+      node_childrens.childrens.forEach((node)=>{
         let res: any = this.buildTree(node)
         childrens.push(res)
       })

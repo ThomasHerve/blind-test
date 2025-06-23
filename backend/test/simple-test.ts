@@ -182,8 +182,8 @@ function testSockets(token) {
       });
     });
     */
-    /*
-
+    
+/*
     socket.on('musicAdded', (music) => {
       console.log('[Client] Music added:', music);
 
@@ -209,11 +209,11 @@ function testSockets(token) {
       console.log('[Client] Node removed:', payload);
       socket.disconnect();
     });
-*/
+
     socket.on('error', (err) => {
       console.error('[Client] Error from server:', err);
     });
-    
+    */
    
     
   // Callbacks

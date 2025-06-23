@@ -85,9 +85,7 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         sessionId,
         payload.name.trim(),
         payload.parentId,
-      ).then((id)=>{
-        client.emit('folderAdded', { parentId: payload.parentId, id: id });
-      });
+      )
   }
 
   @SubscribeMessage('addMusic')
@@ -107,9 +105,7 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         payload.parentId,
         payload.url.trim(),
         payload.videoId.trim(),
-      ).then((id)=>{
-        client.emit('musicAdded', { parentId: payload.parentId, id: id });
-      });
+      )
   }
 
   @SubscribeMessage('removeNode')
@@ -124,9 +120,7 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
       this.sessionService.removeNode(
         sessionId,
         payload.nodeId,
-      ).then(()=>{
-        client.emit('nodeRemoved', { nodeId: payload.nodeId });
-      });
+      )
       
   }
 
@@ -146,8 +140,6 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         sessionId,
         payload.nodeId,
         payload.newName.trim(),
-      ).then(()=>{
-        client.emit('nodeRenamed', { nodeId: payload.nodeId, newName: payload.newName });
-      });
+      )
   }
 }

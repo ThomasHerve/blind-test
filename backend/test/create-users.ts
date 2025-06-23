@@ -129,6 +129,11 @@ function get(url, token) {
 }
 
 post("http://localhost:3000/users/create", {
+        username: "thomas",
+        password: "thomasthomas",
+        email: "a@gmail.com"
+    }, false)
+post("http://localhost:3000/users/create", {
         username: "test1",
         password: "thomasthomas",
         email: "a@gmail.com"
