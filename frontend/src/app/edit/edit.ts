@@ -10,11 +10,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { BlindService, BlindEntry } from '../services/blind';
 import { AddFolderDialog } from './add-folder-dialog/add-folder-dialog';
 import { MatTreeModule } from '@angular/material/tree';
-import { Folder, FolderNode } from '../services/folder';
+import { FolderNode, FolderService } from '../services/folder';
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { FormsModule } from '@angular/forms';
 import { AddMusicDialog } from './add-music-dialog/add-music-dialog';
-import { folderType } from '../services/folder';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
@@ -33,12 +32,10 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
   styleUrls: ['./edit.css']
 })
 export class Edit implements OnInit {
-  folderType = folderType
   previewId: string | null = null;
   previewUrl: SafeResourceUrl | null = null;  
   
   private route = inject(ActivatedRoute);
-  private folderService = inject(Folder);
   private dialog = inject(MatDialog);
   private blindService = inject(BlindService);
   
@@ -52,7 +49,8 @@ export class Edit implements OnInit {
 
   constructor(
     private cd: ChangeDetectorRef,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private folderService: FolderService
   ) {}
 
   ngOnInit(): void {
@@ -65,11 +63,13 @@ export class Edit implements OnInit {
   }
 
   loadTree(): void {
-    this.dataSource = this.folderService.getTree(this.blindId);
-    this.treeControl.dataNodes = this.dataSource;
-    this.treeControl.expandAll(); // ou rien pour collapsed par défaut
-    this.cd.detectChanges();
-    console.log(this.dataSource)
+    this.folderService.tree$.subscribe((next)=>{
+      this.dataSource = next
+      this.treeControl.dataNodes = next;
+      this.treeControl.expandAll();
+      this.cd.detectChanges();
+      console.log(next)
+    })
   }
 
   hasChild = (_: number, node: FolderNode) => !!node.children && node.children.length > 0;
@@ -85,7 +85,7 @@ export class Edit implements OnInit {
     });
     dialogRef.afterClosed().subscribe(name => {
       if (name && name.trim()) {
-        this.folderService.addFolder(this.blindId, name, parent?.id || null);
+        this.folderService.addFolder(this.blindId, name, parent?.id || undefined);
         this.loadTree();
       }
     });
@@ -101,7 +101,7 @@ export class Edit implements OnInit {
       console.log(video)
       if (video.url) {
         console.log('URL sélectionnée:', video.url);
-        this.folderService.addMusic(this.blindId, video.title, parent?.id, video.url, video.id);
+        this.folderService.addMusic(this.blindId, video.title, video.url, video.id, parent?.id);
         this.loadTree();
       }
     });

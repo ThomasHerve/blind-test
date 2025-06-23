@@ -22,20 +22,6 @@ export class BlindService {
     this.apiUrl = this.envService.apiUrl
   }
 
-  /** Récupère toutes les entrées depuis le localStorage (ou renvoie [] si rien). */
-  /*
-  getAll(): BlindEntry[] {
-    const raw = localStorage.getItem(this.storageKey);
-    if (!raw) {
-      return [];
-    }
-    try {
-      return JSON.parse(raw) as BlindEntry[];
-    } catch {
-      return [];
-    }
-  }
-    */
    getAll(): Observable<BlindEntry[]> {
     return this.http.get<BlindEntry[]>(`${this.apiUrl}/blinds/get`, {
     headers: new HttpHeaders({
@@ -43,20 +29,6 @@ export class BlindService {
     })
   }).pipe(catchError((error: any) => { throw this.handleError(error) }));
    }
-
-  /** Ajoute une nouvelle entrée (et la persiste). */
-  /*
-  add(name: string): BlindEntry {
-    const entries = this.getAll();
-    const newEntry: BlindEntry = {
-      id: Date.now().toString(),  // utilisation du timestamp comme id simple
-      name: name.trim()
-    };
-    entries.push(newEntry);
-    this.saveAll(entries);
-    return newEntry;
-  }
-  */
 
   add(name: string): Observable<BlindEntry> {
     return this.http.post<BlindEntry>(`${this.apiUrl}/blinds/create`, {
@@ -68,27 +40,12 @@ export class BlindService {
   }).pipe(catchError((error: any) => { throw this.handleError(error) }));
   }
 
-  /** Met à jour la liste complète dans le localStorage. */
-  /*
-  private saveAll(entries: BlindEntry[]): void {
-    localStorage.setItem(this.storageKey, JSON.stringify(entries));
-  }*/
-
-  /** (Optionnel pour plus tard) Récupérer un blind par id. */
-  
   getById(id: string): Observable<BlindEntry | undefined> {
     return this.getAll().pipe(
       map((blinds: BlindEntry[]) => blinds.find(blind => blind.id === id)),
       catchError((error: any) => { throw this.handleError(error); })
     );
   }
-
-  /** (Optionnel pour plus tard) Supprimer une entrée. */
-  /*
-  remove(id: string): void {
-    const filtered = this.getAll().filter(e => e.id !== id);
-    this.saveAll(filtered);
-  }*/
 
   remove(id: string): Observable<boolean> {
     return this.http.delete<boolean>(`${this.apiUrl}/blinds/delete/` + id, {

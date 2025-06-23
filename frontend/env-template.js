@@ -1,4 +1,5 @@
 
 window.__env = {
-  apiUrl: "https://<REPLACE>"
+  apiUrl: "https://<REPLACE>",
+  socketUrl: "wss://<REPLACE>"
 };

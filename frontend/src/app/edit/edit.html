@@ -51,7 +51,7 @@
 
   <!-- Node feuille -->
   <mat-tree-node *matTreeNodeDef="let node">
-    <div class="mat-tree-node" [style]="'padding-left: ' + getPadding(node) + 'px'" *ngIf="node.type == folderType.FOLDER">
+    <div class="mat-tree-node" [style]="'padding-left: ' + getPadding(node) + 'px'" *ngIf="!node.type">
       <button mat-icon-button disabled></button>
       <span *ngIf="editingNodeId !== node.id" (click)="startRename(node)">
         {{ node.name }}
@@ -77,7 +77,7 @@
           </button>
       </span>
     </div>
-    <div class="mat-tree-node music" [style]="'margin-left: ' + getPadding(node) + 'px'" *ngIf="node.type == folderType.MUSIC">
+    <div class="mat-tree-node music" [style]="'margin-left: ' + getPadding(node) + 'px'" *ngIf="node.type">
       <span *ngIf="editingNodeId !== node.id"  [style]="'margin-left: ' + getPadding(node) + 'px'" (click)="startRename(node)">
         {{ node.name }}
       </span>

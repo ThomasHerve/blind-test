@@ -9,5 +9,8 @@ private env = (window as any).__env;
   get apiUrl(): string {
     return this.env?.apiUrl;// || 'http://localhost:3000';
   }
+  get socketUrl(): string {
+    return this.env?.socketUrl;
+  }
 
 }
