@@ -1,0 +1,8 @@
+namespace: blind-test
+ingress:
+  enabled: true
+image:
+  repository: thomasherve/blind-test-backend
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"

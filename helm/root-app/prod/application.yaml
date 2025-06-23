@@ -1,0 +1,88 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: blind-test-backend
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: blind-test
+    server: 'https://kubernetes.default.svc'
+  project: blind-test
+  source:
+    repoURL: git@github.com:ThomasHerve/blind-test.git
+    path: backend
+    targetRevision: main
+    helm:
+      valueFiles:
+        - envs/prod/helm/values.yaml
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - PruneLast=true
+      - CreateNamespace=true
+      - Validate=true
+  ignoreDifferences:
+    # pod toleration causes a diff because the target cluster is different
+    - group: ""
+      kind: Pod
+      jsonPointers:
+        - /spec/tolerations
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: blind-test-postgresql
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: blind-test
+    server: 'https://kubernetes.default.svc'
+  project: blind-test
+  source:
+    repoURL: 'git@github.com:ThomasHerve/tournament-helm.git'
+    path: postgresql
+    targetRevision: main
+    helm:
+      valueFiles:
+        - envs/prod/values.yaml
+  syncPolicy:
+    automated: {}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: blind-test-frontend
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  destination:
+    namespace: blind-test
+    server: 'https://kubernetes.default.svc'
+  project: blind-test
+  source:
+    repoURL: git@github.com:ThomasHerve/tournament-helm.git
+    path: frontend
+    targetRevision: main
+    helm:
+      valueFiles:
+        - envs/prod/helm/values.yaml
+  syncPolicy:
+    automated:
+      selfHeal: true
+    syncOptions:
+      - PruneLast=true
+      - CreateNamespace=true
+      - Validate=true
+  ignoreDifferences:
+    # pod toleration causes a diff because the target cluster is different
+    - group: ""
+      kind: Pod
+      jsonPointers:
+        - /spec/tolerations

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-configmap
+data:
+  env.ts: |-
+    window.__env = {
+      apiUrl: "https://{{ .Values.backend-url }}",
+      socketUrl: "wss://{{ .Values.backend-url }}"
+    };
+
