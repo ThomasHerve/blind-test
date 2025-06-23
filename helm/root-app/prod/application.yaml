@@ -13,7 +13,7 @@ spec:
   project: blind-test
   source:
     repoURL: git@github.com:ThomasHerve/blind-test.git
-    path: backend
+    path: helm/backend
     targetRevision: main
     helm:
       valueFiles:
@@ -46,7 +46,7 @@ spec:
   project: blind-test
   source:
     repoURL: 'git@github.com:ThomasHerve/tournament-helm.git'
-    path: postgresql
+    path: helm/postgresql
     targetRevision: main
     helm:
       valueFiles:
@@ -68,7 +68,7 @@ spec:
   project: blind-test
   source:
     repoURL: git@github.com:ThomasHerve/tournament-helm.git
-    path: frontend
+    path: helm/frontend
     targetRevision: main
     helm:
       valueFiles:
