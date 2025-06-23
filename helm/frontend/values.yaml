@@ -53,7 +53,7 @@ ingress:
         - path: /
           pathType: ImplementationSpecific
   tls: 
-    - secretName: ingress-cert
+    - secretName: ingress-cert-frontend
       hosts:
         - blind-test.thomas-herve.fr
 
