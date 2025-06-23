@@ -7,7 +7,7 @@ import { RuntimeEnv } from './runtime-env';
 export interface FolderNode {
   id: string;
   name: string;
-  children: FolderNode[];
+  childrens: FolderNode[];
   url: string;
   prof: number;
   type: boolean;

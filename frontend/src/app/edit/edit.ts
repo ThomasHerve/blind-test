@@ -12,6 +12,7 @@ import { AddFolderDialog } from './add-folder-dialog/add-folder-dialog';
 import { MatTreeModule } from '@angular/material/tree';
 import { FolderNode, FolderService } from '../services/folder';
 import { NestedTreeControl } from '@angular/cdk/tree';
+import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { FormsModule } from '@angular/forms';
 import { AddMusicDialog } from './add-music-dialog/add-music-dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -40,8 +41,8 @@ export class Edit implements OnInit {
   private blindService = inject(BlindService);
   
   blindId!: string;
-  treeControl = new NestedTreeControl<FolderNode>(node => node.children);
-  dataSource: (FolderNode)[] = [];
+  treeControl = new NestedTreeControl<FolderNode>(node => node.childrens);
+  dataSource = new MatTreeNestedDataSource<FolderNode>();
   entry: BlindEntry | undefined;
   
   editingNodeId: string | null = null;
@@ -65,15 +66,16 @@ export class Edit implements OnInit {
   loadTree(): void {
     this.folderService.init(this.blindId)
     this.folderService.tree$.subscribe((next)=>{
-      this.dataSource = next
+      this.dataSource.data = next
       this.treeControl.dataNodes = next;
       this.treeControl.expandAll();
       this.cd.detectChanges();
-      console.log(next)
+      console.log(this.treeControl)
+      console.log(this.dataSource.data)
     })
   }
 
-  hasChild = (_: number, node: FolderNode) => !!node.children && node.children.length > 0;
+  hasChild = (_: number, node: FolderNode) => !!node.childrens && node.childrens.length > 0;
 
   downloadTree() {
     

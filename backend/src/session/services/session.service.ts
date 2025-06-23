@@ -124,10 +124,11 @@ async buildTree(node: BlindNode): Promise<any> {
     }
 
     const saved = await this.NodeRepository.save(node);
-    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('folderAdded', saved)})
+    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('folderAdded', {
+      name: saved.name,
+      id: saved.id,
+    })})
     this.sendTree(blindId, client)
-
-    return node.id
   }
 
   async addMusic(
