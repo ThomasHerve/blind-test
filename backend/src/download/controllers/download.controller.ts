@@ -55,14 +55,24 @@ export class DownloadController {
           ytdl(ytUrl, { filter: 'audioandvideo' }),
           { name: filename }
         );*/
-        const stream = await this.dl.execStream([
+        const dlStream = await this.dl.execStream([
           ytUrl,
-          '-f', 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4',
-          '-o', '-',      // envoie sur stdout
-        ]).on((res)=>{
-          
+          '-f', 'mp4',
+          '-o', '-', // sortie sur stdout
+        ]);
+
+        archive.append(dlStream, { name: filename });
+
+        // Optionnel : logs (YTDlpReadable émet parfois 'error' directement)
+        dlStream.on('error', (err) => {
+          console.error(`Erreur de stream yt-dlp pour ${ytUrl}`, err);
         });
-        archive.append(stream., { name: filename });
+
+        let total = 0;
+        dlStream.on('data', chunk => {
+          total += chunk.length;
+          console.log(`Téléchargé ${Math.round(total / 1024)} Ko pour ${filename}`);
+        });
       }
       // traite les enfants
       if (node.childrens && node.childrens.length > 0) {
@@ -83,9 +93,10 @@ export class DownloadController {
     for (const entry of blind.entries.filter((instance)=>instance && instance.parent == null)) {
       const root = await this.nodeRepo.findOne({
         where: { id: entry.id },
-        relations: ['childrens'],
+        relations: ['childrens', 'parent'],
       });
-      if (root) {
+      if (root && root.parent == null) {
+        console.log(root)
         await buildTree(root, '');
       }
     }
