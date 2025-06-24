@@ -41,6 +41,7 @@ export class DownloadController {
         name: fullNode.name,
         videoId: fullNode.videoId,
         type: fullNode.type,
+        link: fullNode.url,
         childrens: await Promise.all((fullNode.childrens || []).map(buildTree)),
       };
     };
