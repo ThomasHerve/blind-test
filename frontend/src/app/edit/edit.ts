@@ -76,8 +76,25 @@ export class Edit implements OnInit {
   hasChild = (_: number, node: FolderNode) => !!node.childrens && node.childrens.length > 0;
 
   downloadTree() {
-    this.blindService.downloadTree(this.blindId).subscribe((res)=>{
-      console.log(res)
+    this.blindService.downloadTree(this.blindId).subscribe((obj)=>{
+          let filename  = "";
+          if(this.entry)
+            filename = this.entry?.title;
+          const jsonStr = JSON.stringify(obj, null, 2);
+          const blob    = new Blob([jsonStr], { type: 'application/json' });
+          const url     = window.URL.createObjectURL(blob);
+
+          const a        = document.createElement('a');
+          a.href         = url;
+          a.download     = filename;
+          a.style.display = 'none';
+          document.body.appendChild(a);
+          a.click();
+
+          // cleanup
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+
     })
   }
 
