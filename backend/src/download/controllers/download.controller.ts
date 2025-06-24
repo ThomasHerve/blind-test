@@ -45,7 +45,19 @@ export class DownloadController {
       };
     };
 
-    const roots = blind.entries.filter(e => e.parent == null);
+    const entriesWithInstance = await Promise.all(
+      blind.entries.map(async (e) => {
+        const instance = await this.nodeRepo.findOne({
+          where: { id: e.id },
+          relations: ['parent'],
+        });
+        return { entry: e, instance };
+      })
+    );
+
+    const roots = entriesWithInstance
+      .filter(({ instance }) => instance?.parent == null)
+      .map(({ entry }) => entry);
     const tree = await Promise.all(roots.map(buildTree));
 
     return { id: blind.id, name: blind.title, tree };
