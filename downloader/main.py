@@ -25,7 +25,7 @@ def download_file(data, current_path):
             if link:
                 # Enregistre le fichier si un lien est présent
                 save_link(name, link, current_path)
-            elif children:
+            elif children and len(children) > 0:
                 # Crée le sous-dossier si ce n’est pas un lien
                 os.makedirs(new_path, exist_ok=True)
                 download_file(children, new_path)  # Récursivité
