@@ -69,7 +69,6 @@ export class Edit implements OnInit {
       this.dataSource.data = next
       this.treeControl.dataNodes = next;
       this.treeControl.expandAll();
-      console.log(next)
       this.cd.detectChanges();
     })
   }
@@ -77,7 +76,9 @@ export class Edit implements OnInit {
   hasChild = (_: number, node: FolderNode) => !!node.childrens && node.childrens.length > 0;
 
   downloadTree() {
-    this.blindService.downloadTree(this.blindId)
+    this.blindService.downloadTree(this.blindId).subscribe((res)=>{
+      console.log(res)
+    })
   }
 
   addFolder(parent: FolderNode | null): void {

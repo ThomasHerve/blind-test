@@ -84,8 +84,11 @@ export class BlindService {
   }
 
   downloadTree(blindId: string) {
-    const url = `${this.apiUrl}/youtube/${blindId}/download`;
-    window.open(url, '_blank');
+    return this.http.get<BlindEntry[]>(`${this.apiUrl}/youtube/${blindId}/download`, {
+      headers: new HttpHeaders({
+        'Authorization': `Bearer ${User.getAccessToken()}`
+      })
+    }).pipe(catchError((error: any) => { throw this.handleError(error) }));
   }
 
   private handleError(error: any): any {
