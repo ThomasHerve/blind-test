@@ -7,6 +7,7 @@ import { RuntimeEnv } from './runtime-env';
 export interface FolderNode {
   id: string;
   name: string;
+  parent: FolderNode;
   childrens: FolderNode[];
   url: string;
   prof: number;
@@ -39,6 +40,7 @@ export class FolderService {
 
     // Listen for real-time tree updates
     this.socket.on('tree', (payload: { tree: FolderNode[] }) => {
+      console.log("socket tree", payload.tree)
       this.treeSubject.next(payload.tree);
     });
 
@@ -65,6 +67,11 @@ export class FolderService {
       url,
       videoId
     });
+  }
+
+  moveMusic(blindId: string, direction: string, nodeId: string) {
+    console.log("uwu")
+    this.socket.emit('moveMusic', {id: blindId, direction, nodeId})
   }
 
   renameNode(blindId: string, nodeId: string, newName: string): void {

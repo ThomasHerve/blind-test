@@ -89,7 +89,11 @@
         class="rename-input"
       />
         <span class="node-actions">
-        <!-- Bouton supprimer dossier -->
+        <!-- Bouton déplacer musique -->
+         <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music">
+            <mat-icon>keyboard_arrow_up</mat-icon>
+          </button>
+        <!-- Bouton supprimer musique -->
           <button mat-icon-button (click)="deleteNode(node); $event.stopPropagation()" aria-label="Supprimer music">
             <mat-icon>delete</mat-icon>
           </button>

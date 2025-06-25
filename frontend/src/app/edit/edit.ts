@@ -126,7 +126,13 @@ export class Edit implements OnInit {
     });
   }
 
+  moveMusic(direction: string, node: FolderNode) {
+    console.debug("moveMusic");
+    this.folderService.moveMusic(this.blindId, direction, node.id)
+  }
+
   deleteNode(node: FolderNode): void {
+    console.debug('deleteNode', node)
     if (confirm(`Supprimer le dossier "${node.name}" et tout son contenu ?`)) {
       this.folderService.removeNode(this.blindId, node.id);
       this.loadTree();

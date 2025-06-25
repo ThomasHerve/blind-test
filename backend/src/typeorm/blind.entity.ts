@@ -74,4 +74,10 @@ export class BlindNode {
   })
   videoId: string;
 
+  @Column({
+    nullable: false,
+    default: 0
+  })
+  position: number;
+
 }

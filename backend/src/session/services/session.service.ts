@@ -94,6 +94,10 @@ export class SessionService {
 
     const toSend = treeResults.filter(tree => tree !== null);
 
+    // toSend.forEach(element => {
+    //   console.log(element)
+    // });
+
     this.rooms[`room-${blindId}`].forEach(client => {
       client.emit("tree", { blindId: blindId, tree: toSend });
     });
@@ -167,7 +171,7 @@ async buildTree(node: BlindNode): Promise<any> {
       }
       node.parent = parent;
       node.prof = parent.prof + 1;
-      console.log(parent)
+      // console.log(parent)
       if(!parent.childrens)
         parent.childrens = [node]
       else
@@ -213,6 +217,7 @@ async buildTree(node: BlindNode): Promise<any> {
       }
       node.parent = parent;
       node.prof = parent.prof + 1;
+      node.position = parent.childrens.length;
       if(!parent.childrens)
         parent.childrens = [node]
       else
@@ -230,14 +235,89 @@ async buildTree(node: BlindNode): Promise<any> {
     this.sendTree(blindId, client)
   }
 
-  async removeNode(blindId: string, nodeId: string, client: Socket) {
+  async moveMusic(blindId: string, direction: string, nodeId: string, client: Socket) {
     const node = await this.NodeRepository.findOne({
       where: { id: parseInt(nodeId) },
-      relations: ['blind'],
+      relations: ['blind', 'parent.childrens'],
     });
     if (!node || node.blind.id != parseInt(blindId)) {
       this.sendError('Node not found or does not belong to blind test', client);
       return;
+    }
+
+    const parent = node.parent;
+
+    // console.log(parent)
+
+    if (!parent) {
+      this.sendError("Can't find the parent", client);
+      return;
+    }
+
+    let i = node.position;
+    // console.log("node position", node.position)
+
+    if (i == 0 && direction === "up") {
+      this.sendError('This music is already the first one', client);
+      return;
+    }
+    else if (i == parent.childrens.length - 1 && direction === "down") {
+      this.sendError('This music is already the last one', client);
+      return;
+    }
+    
+    let childToModify;
+
+    if (direction === "up") {
+      childToModify = parent.childrens.find(child => child.position === i - 1);
+      if (!childToModify) {
+        this.sendError('A weird error occured', client);
+        return;
+      }
+      childToModify.position = i;
+      node.position = i - 1;
+    }
+    else if (direction == "down") {
+      childToModify = parent.childrens.find(child => child.position === i + 1);
+      if (!childToModify) {
+        this.sendError('A weird error occured', client);
+        return;
+      }
+      childToModify.position = i;
+      node.position = i + 1;
+    }
+    else {
+      this.sendError('Wrong direction to move', client)
+      return;
+    }
+
+    console.log('newposition :', childToModify.position, node.position)
+
+    const updated = await this.NodeRepository.save(childToModify);
+    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeMoved', updated)})
+    const nodeUpdated = await this.NodeRepository.save(node);
+    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeMoved', nodeUpdated)})
+    this.sendTree(blindId, client)
+  }
+
+  async removeNode(blindId: string, nodeId: string, client: Socket) {
+    const node = await this.NodeRepository.findOne({
+      where: { id: parseInt(nodeId) },
+      relations: ['blind', 'parent.childrens'],
+    });
+    if (!node || node.blind.id != parseInt(blindId)) {
+      this.sendError('Node not found or does not belong to blind test', client);
+      return;
+    }
+
+    if (node.parent) {
+      let i = 0;
+      while (node.parent.childrens[i].id != node.id && i < node.parent.childrens.length)
+        i++;
+      while (i < node.parent.childrens.length) {
+        node.parent.childrens[i].position--;
+        await this.NodeRepository.save(node.parent.childrens[i]);
+      }
     }
 
     await this.NodeRepository.remove(node);
