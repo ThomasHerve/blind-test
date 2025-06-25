@@ -13,6 +13,7 @@ export interface FolderNode {
   prof: number;
   type: boolean;
   videoId: string;
+  position: number;
 }
 
 interface YouTubeSearchResponse {

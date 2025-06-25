@@ -91,12 +91,14 @@ export class SessionService {
         return null;
       })
     );
+    
 
     const toSend = treeResults.filter(tree => tree !== null);
 
-    // toSend.forEach(element => {
-    //   console.log(element)
-    // });
+
+    toSend.forEach(element => {
+      element.childrens.sort((a, b) => a.position - b.position)
+    });
 
     this.rooms[`room-${blindId}`].forEach(client => {
       client.emit("tree", { blindId: blindId, tree: toSend });
@@ -124,7 +126,8 @@ async buildTree(node: BlindNode): Promise<any> {
     childrens:   childrens,
     prof:        instance.prof,
     type:        instance.type,
-    videoId:     instance.videoId
+    videoId:     instance.videoId,
+    position:    instance.position
   };
 }
 
