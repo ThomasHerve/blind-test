@@ -16,7 +16,7 @@ def main():
 def download_file(data, current_path):
     for item in data:
         if isinstance(item, dict):
-            name = nettoyer_nom_fichier(item.get("name", "inconnu"))
+            name = str(item["position"]) + "-" + nettoyer_nom_fichier(item.get("name", "inconnu"))
             link = item.get("link")
             children = item.get("childrens")
 
