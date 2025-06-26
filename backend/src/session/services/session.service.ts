@@ -99,10 +99,11 @@ export class SessionService {
     toSend.forEach(element => {
       element.childrens.sort((a, b) => a.position - b.position)
     });
-
+    try {
     this.rooms[`room-${blindId}`].forEach(client => {
       client.emit("tree", { blindId: blindId, tree: toSend });
     });
+    } catch {}
   }
 
 async buildTree(node: BlindNode): Promise<any> {
@@ -174,6 +175,7 @@ async buildTree(node: BlindNode): Promise<any> {
       }
       node.parent = parent;
       node.prof = parent.prof + 1;
+      node.position = parent.childrens.length;
       // console.log(parent)
       if(!parent.childrens)
         parent.childrens = [node]
@@ -183,10 +185,6 @@ async buildTree(node: BlindNode): Promise<any> {
     }
 
     const saved = await this.NodeRepository.save(node);
-    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('folderAdded', {
-      name: saved.name,
-      id: saved.id,
-    })})
     this.sendTree(blindId, client)
   }
 
@@ -294,8 +292,6 @@ async buildTree(node: BlindNode): Promise<any> {
       return;
     }
 
-    console.log('newposition :', childToModify.position, node.position)
-
     const updated = await this.NodeRepository.save(childToModify);
     this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeMoved', updated)})
     const nodeUpdated = await this.NodeRepository.save(node);
@@ -313,18 +309,20 @@ async buildTree(node: BlindNode): Promise<any> {
       return;
     }
 
+
     if (node.parent) {
       let i = 0;
-      while (node.parent.childrens[i].id != node.id && i < node.parent.childrens.length)
-        i++;
-      while (i < node.parent.childrens.length) {
-        node.parent.childrens[i].position--;
-        await this.NodeRepository.save(node.parent.childrens[i]);
-      }
+      const position = node.position;
+
+      node.parent.childrens.forEach(async (n)=>{
+        if(n.position > position) {
+          n.position--;
+          await this.NodeRepository.save(n);
+        }
+      })
     }
 
     await this.NodeRepository.remove(node);
-    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeRemoved', { nodeId })})
     this.sendTree(blindId, client)
   }
 
@@ -340,14 +338,12 @@ async buildTree(node: BlindNode): Promise<any> {
 
     node.name = newName;
     const updated = await this.NodeRepository.save(node);
-    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeRenamed', updated)})
     this.sendTree(blindId, client)
   }
 
   leaveBySocket(client: Socket) {
     const blindId = this.clients[client.id];
     if (blindId) {
-      this.rooms[`room-${this.clients[client.id]}`] = this.rooms[`room-${this.clients[client.id]}`].filter((c)=>client.id != c.id)
       delete this.clients[client.id];
     }
   }

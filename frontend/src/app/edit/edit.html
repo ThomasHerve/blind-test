@@ -30,6 +30,14 @@
         class="rename-input"
       />
       <span class="node-actions">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music">
+              <mat-icon>keyboard_arrow_up</mat-icon>
+            </button>
+            <button mat-icon-button style="margin-top: -20px;" (click)="moveMusic('down', node); $event.stopPropagation()" aria-label="Deplacer music">
+              <mat-icon>keyboard_arrow_down</mat-icon>
+            </button>
+         </div>
         <!-- Bouton ajouter sous-dossier -->
         <button mat-icon-button (click)="addFolder(node)" aria-label="Ajouter sous-dossier">
           <mat-icon>create_new_folder</mat-icon>
@@ -64,6 +72,14 @@
         class="rename-input"
       />
       <span class="node-actions">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music">
+              <mat-icon>keyboard_arrow_up</mat-icon>
+            </button>
+            <button mat-icon-button style="margin-top: -20px;" (click)="moveMusic('down', node); $event.stopPropagation()" aria-label="Deplacer music">
+              <mat-icon>keyboard_arrow_down</mat-icon>
+            </button>
+         </div>
           <button mat-icon-button (click)="addFolder(node)" aria-label="Ajouter sous-dossier">
             <mat-icon>create_new_folder</mat-icon>
           </button>
@@ -88,16 +104,22 @@
         (blur)="finishRename(node)"
         class="rename-input"
       />
-        <span class="node-actions">
+        <div class="node-actions">
         <!-- Bouton déplacer musique -->
-         <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music">
+         <div style="display: flex; flex-direction: column; gap: 2px;">
+            <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music">
             <mat-icon>keyboard_arrow_up</mat-icon>
           </button>
+          <button mat-icon-button style="margin-top: -20px;" (click)="moveMusic('down', node); $event.stopPropagation()" aria-label="Deplacer music">
+            <mat-icon>keyboard_arrow_down</mat-icon>
+          </button>
+         </div>
+         
         <!-- Bouton supprimer musique -->
           <button mat-icon-button (click)="deleteNode(node); $event.stopPropagation()" aria-label="Supprimer music">
             <mat-icon>delete</mat-icon>
           </button>
-        </span>
+        </div>
 
           <!-- Contrôles -->
         <div matLine class="video-actions">

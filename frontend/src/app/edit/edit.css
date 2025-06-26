@@ -5,6 +5,7 @@
 .music {
   background-color: rgba(200, 0, 0, 0.5) !important;
   border:1px solid black;
+  height: 100%;
 }
 
 .mat-tree-node+music:hover {
@@ -34,5 +35,7 @@
 .node-actions {
   margin-left: auto;
   display: flex;
-  gap: 8px;
+  flex-direction: row;
+  height: 100%;
+  align-items: center;
 }

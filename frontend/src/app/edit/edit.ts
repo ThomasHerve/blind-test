@@ -66,6 +66,7 @@ export class Edit implements OnInit {
   loadTree(): void {
     this.folderService.init(this.blindId)
     this.folderService.tree$.subscribe((next)=>{
+      console.log(next)
       this.dataSource.data = next
       this.treeControl.dataNodes = next;
       this.treeControl.expandAll();
@@ -106,7 +107,6 @@ export class Edit implements OnInit {
     dialogRef.afterClosed().subscribe(name => {
       if (name && name.trim()) {
         this.folderService.addFolder(this.blindId, name, parent?.id || undefined);
-        this.loadTree();
       }
     });
   }
@@ -121,7 +121,6 @@ export class Edit implements OnInit {
       if (video && video.url) {
         console.log('URL sélectionnée:', video.url);
         this.folderService.addMusic(this.blindId, video.title, video.url, video.id, parent?.id);
-        this.loadTree();
       }
     });
   }
@@ -135,7 +134,6 @@ export class Edit implements OnInit {
     console.debug('deleteNode', node)
     if (confirm(`Supprimer le dossier "${node.name}" et tout son contenu ?`)) {
       this.folderService.removeNode(this.blindId, node.id);
-      this.loadTree();
     }
   }
 
