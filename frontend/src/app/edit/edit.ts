@@ -48,11 +48,18 @@ export class Edit implements OnInit {
   editingNodeId: string | null = null;
   editName: string = '';
 
+  private expandedNodeIds = new Set<string>();
+
   constructor(
     private cd: ChangeDetectorRef,
     private sanitizer: DomSanitizer,
     private folderService: FolderService,
-  ) {}
+  ) {
+    this.treeControl.expansionModel.changed.subscribe(change => {
+      change.added.forEach(node => this.expandedNodeIds.add(node.id));
+      change.removed.forEach(node => this.expandedNodeIds.delete(node.id));
+    });
+  }
 
   ngOnInit(): void {
     this.blindId = this.route.snapshot.paramMap.get('id')!;
@@ -65,12 +72,20 @@ export class Edit implements OnInit {
 
   loadTree(): void {
     this.folderService.init(this.blindId)
-    this.folderService.tree$.subscribe((next)=>{
-      this.dataSource.data = next
+    this.folderService.tree$.subscribe(next => {
+      // Mise à jour des données
+      this.dataSource.data = next;
       this.treeControl.dataNodes = next;
-      this.treeControl.expandAll();
+      
+      // Ré-expansion selon le Set des IDs
+      next.forEach(node => {
+        if (this.expandedNodeIds.has(node.id)) {
+          this.treeControl.expand(node);
+        }
+      });
+
       this.cd.detectChanges();
-    })
+    });
   }
 
   hasChild = (_: number, node: FolderNode) => !!node.childrens && node.childrens.length > 0;
