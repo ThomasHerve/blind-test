@@ -71,7 +71,6 @@ export class FolderService {
   }
 
   moveMusic(blindId: string, direction: string, nodeId: string) {
-    console.log("uwu")
     this.socket.emit('moveMusic', {id: blindId, direction, nodeId})
   }
 

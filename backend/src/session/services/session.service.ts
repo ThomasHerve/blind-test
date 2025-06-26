@@ -94,7 +94,7 @@ export class SessionService {
     
 
     const toSend = treeResults.filter(tree => tree !== null);
-
+    toSend.sort((a, b) => a.position - b.position)
 
     toSend.forEach(element => {
       element.childrens.sort((a, b) => a.position - b.position)
@@ -183,6 +183,15 @@ async buildTree(node: BlindNode): Promise<any> {
         parent.childrens.push(node)
       await this.NodeRepository.save(parent);
     }
+    else {
+      // Position for top folders
+      let topFolders = await this.NodeRepository.find({
+        where:  {blind: blind},
+        relations: ["parent", "blind"]
+      })
+      topFolders = topFolders.filter((folder)=>folder.parent == null)
+      node.position = topFolders.length
+    }
 
     const saved = await this.NodeRepository.save(node);
     this.sendTree(blindId, client)
@@ -251,7 +260,43 @@ async buildTree(node: BlindNode): Promise<any> {
     // console.log(parent)
 
     if (!parent) {
-      this.sendError("Can't find the parent", client);
+      // Node root
+      const blind = await this.BlindEntriesRepository.findOneBy({ id: parseInt(blindId) });
+      if (!blind) {
+        this.sendError('Blind test not found', client);
+        return;
+      } 
+      let topFolders = await this.NodeRepository.find({
+        where:  {blind: blind},
+        relations: ["parent", "blind"]
+      })
+      topFolders = topFolders.filter((folder)=>folder.parent == null)
+      let childToModify;
+      if (direction === "up") {
+        childToModify = topFolders.find(child => child.position === node.position - 1);
+        if (!childToModify) {
+          this.sendError('A weird error occured', client);
+          return;
+        }
+        childToModify.position = node.position;
+        node.position = node.position - 1;
+      }
+      else if (direction == "down") {
+        childToModify = topFolders.find(child => child.position === node.position + 1);
+        if (!childToModify) {
+          this.sendError('A weird error occured', client);
+          return;
+        }
+        childToModify.position = node.position;
+        node.position = node.position + 1;
+      }
+      else {
+        this.sendError('Wrong direction to move', client)
+        return;
+      }
+      await this.NodeRepository.save(childToModify);
+      await this.NodeRepository.save(node);
+      this.sendTree(blindId, client)
       return;
     }
 
