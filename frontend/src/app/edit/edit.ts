@@ -17,6 +17,17 @@ import { FormsModule } from '@angular/forms';
 import { AddMusicDialog } from './add-music-dialog/add-music-dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
+
+class NodeStatus {
+  first: boolean = false
+  last: boolean = false
+
+  constructor(first: boolean, last: boolean) {
+    this.first = first
+    this.last = last
+  }
+}
+
 @Component({
   selector: 'app-edit',
   standalone: true,
@@ -49,6 +60,7 @@ export class Edit implements OnInit {
   editName: string = '';
 
   private expandedNodeIds = new Set<string>();
+  public nodePos: Map<FolderNode, NodeStatus> = new Map<FolderNode, NodeStatus>();
 
   constructor(
     private cd: ChangeDetectorRef,
@@ -73,19 +85,41 @@ export class Edit implements OnInit {
   loadTree(): void {
     this.folderService.init(this.blindId)
     this.folderService.tree$.subscribe(next => {
+      this.nodePos.clear();
+      this.setNodesStatus(next);
+      
       // Mise à jour des données
       this.dataSource.data = next;
       this.treeControl.dataNodes = next;
       
-      // Ré-expansion selon le Set des IDs
-      next.forEach(node => {
-        if (this.expandedNodeIds.has(node.id)) {
-          this.treeControl.expand(node);
-        }
-      });
+      this.restoreExpandedState(next);
 
       this.cd.detectChanges();
     });
+  }
+
+  setNodesStatus(folderNode: FolderNode[]) {
+    folderNode.sort((a,b)=>a.position - b.position)
+    const len = folderNode.length;
+    folderNode.forEach((node)=>{
+      this.nodePos.set(node, new NodeStatus(
+        node.position == 0,
+        node.position == len - 1
+      ))
+      if(node.childrens && node.childrens.length > 0)
+        this.setNodesStatus(node.childrens)
+    })
+  }
+
+  restoreExpandedState(nodes: FolderNode[]): void {
+    for (const node of nodes) {
+      if (this.expandedNodeIds.has(node.id)) {
+        this.treeControl.expand(node);
+      }
+      if (node.childrens && node.childrens.length > 0) {
+        this.restoreExpandedState(node.childrens);
+      }
+    }
   }
 
   hasChild = (_: number, node: FolderNode) => !!node.childrens && node.childrens.length > 0;

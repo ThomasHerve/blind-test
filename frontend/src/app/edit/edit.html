@@ -30,12 +30,16 @@
         class="rename-input"
       />
       <span class="node-actions">
-          <div style="display: flex; flex-direction: column; gap: 2px;">
-            <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music">
+          <div style="display: flex; flex-direction: column; gap: 2px; align-items: center;" *ngIf="!(nodePos.get(node)?.first && nodePos.get(node)?.last)">
+            <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music" *ngIf="!nodePos.get(node)?.first">
               <mat-icon>keyboard_arrow_up</mat-icon>
             </button>
-            <button mat-icon-button style="margin-top: -20px;" (click)="moveMusic('down', node); $event.stopPropagation()" aria-label="Deplacer music">
-              <mat-icon>keyboard_arrow_down</mat-icon>
+          <button mat-icon-button 
+                  [style]="'margin-top:' + (nodePos.get(node)?.first ? '0px;' : '-20px;')" 
+                  (click)="moveMusic('down', node); $event.stopPropagation()" 
+                  aria-label="Deplacer music" 
+                  *ngIf="!nodePos.get(node)?.last">
+             <mat-icon>keyboard_arrow_down</mat-icon>
             </button>
          </div>
         <!-- Bouton ajouter sous-dossier -->
@@ -72,11 +76,15 @@
         class="rename-input"
       />
       <span class="node-actions">
-          <div style="display: flex; flex-direction: column; gap: 2px;">
-            <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music">
+          <div style="display: flex; flex-direction: column; gap: 2px; align-items: center;" *ngIf="!(nodePos.get(node)?.first && nodePos.get(node)?.last)">
+            <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music" *ngIf="!nodePos.get(node)?.first">
               <mat-icon>keyboard_arrow_up</mat-icon>
             </button>
-            <button mat-icon-button style="margin-top: -20px;" (click)="moveMusic('down', node); $event.stopPropagation()" aria-label="Deplacer music">
+            <button mat-icon-button 
+                  [style]="'margin-top:' + (nodePos.get(node)?.first ? '0px;' : '-20px;')" 
+                  (click)="moveMusic('down', node); $event.stopPropagation()" 
+                  aria-label="Deplacer music" 
+                  *ngIf="!nodePos.get(node)?.last">
               <mat-icon>keyboard_arrow_down</mat-icon>
             </button>
          </div>
@@ -106,11 +114,15 @@
       />
         <div class="node-actions">
         <!-- Bouton déplacer musique -->
-         <div style="display: flex; flex-direction: column; gap: 2px;">
-            <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music">
+         <div style="display: flex; flex-direction: column; gap: 2px;" *ngIf="!(nodePos.get(node)?.first && nodePos.get(node)?.last)">
+            <button mat-icon-button (click)="moveMusic('up', node); $event.stopPropagation()" aria-label="Deplacer music" *ngIf="!nodePos.get(node)?.first">
             <mat-icon>keyboard_arrow_up</mat-icon>
           </button>
-          <button mat-icon-button style="margin-top: -20px;" (click)="moveMusic('down', node); $event.stopPropagation()" aria-label="Deplacer music">
+          <button mat-icon-button 
+                  [style]="'margin-top:' + (nodePos.get(node)?.first ? '0px;' : '-20px;')" 
+                  (click)="moveMusic('down', node); $event.stopPropagation()" 
+                  aria-label="Deplacer music" 
+                  *ngIf="!nodePos.get(node)?.last">
             <mat-icon>keyboard_arrow_down</mat-icon>
           </button>
          </div>
