@@ -91,12 +91,19 @@ export class SessionService {
         return null;
       })
     );
+    
 
     const toSend = treeResults.filter(tree => tree !== null);
+    toSend.sort((a, b) => a.position - b.position)
 
+    toSend.forEach(element => {
+      element.childrens.sort((a, b) => a.position - b.position)
+    });
+    try {
     this.rooms[`room-${blindId}`].forEach(client => {
       client.emit("tree", { blindId: blindId, tree: toSend });
     });
+    } catch {}
   }
 
 async buildTree(node: BlindNode): Promise<any> {
@@ -120,7 +127,8 @@ async buildTree(node: BlindNode): Promise<any> {
     childrens:   childrens,
     prof:        instance.prof,
     type:        instance.type,
-    videoId:     instance.videoId
+    videoId:     instance.videoId,
+    position:    instance.position
   };
 }
 
@@ -167,19 +175,25 @@ async buildTree(node: BlindNode): Promise<any> {
       }
       node.parent = parent;
       node.prof = parent.prof + 1;
-      console.log(parent)
+      node.position = parent.childrens.length;
+      // console.log(parent)
       if(!parent.childrens)
         parent.childrens = [node]
       else
         parent.childrens.push(node)
       await this.NodeRepository.save(parent);
     }
+    else {
+      // Position for top folders
+      let topFolders = await this.NodeRepository.find({
+        where:  {blind: blind},
+        relations: ["parent", "blind"]
+      })
+      topFolders = topFolders.filter((folder)=>folder.parent == null)
+      node.position = topFolders.length
+    }
 
     const saved = await this.NodeRepository.save(node);
-    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('folderAdded', {
-      name: saved.name,
-      id: saved.id,
-    })})
     this.sendTree(blindId, client)
   }
 
@@ -213,6 +227,7 @@ async buildTree(node: BlindNode): Promise<any> {
       }
       node.parent = parent;
       node.prof = parent.prof + 1;
+      node.position = parent.childrens.length;
       if(!parent.childrens)
         parent.childrens = [node]
       else
@@ -230,18 +245,129 @@ async buildTree(node: BlindNode): Promise<any> {
     this.sendTree(blindId, client)
   }
 
-  async removeNode(blindId: string, nodeId: string, client: Socket) {
+  async moveMusic(blindId: string, direction: string, nodeId: string, client: Socket) {
     const node = await this.NodeRepository.findOne({
       where: { id: parseInt(nodeId) },
-      relations: ['blind'],
+      relations: ['blind', 'parent.childrens'],
     });
     if (!node || node.blind.id != parseInt(blindId)) {
       this.sendError('Node not found or does not belong to blind test', client);
       return;
     }
 
+    const parent = node.parent;
+
+    // console.log(parent)
+
+    if (!parent) {
+      // Node root
+      const blind = await this.BlindEntriesRepository.findOneBy({ id: parseInt(blindId) });
+      if (!blind) {
+        this.sendError('Blind test not found', client);
+        return;
+      } 
+      let topFolders = await this.NodeRepository.find({
+        where:  {blind: blind},
+        relations: ["parent", "blind"]
+      })
+      topFolders = topFolders.filter((folder)=>folder.parent == null)
+      let childToModify;
+      if (direction === "up") {
+        childToModify = topFolders.find(child => child.position === node.position - 1);
+        if (!childToModify) {
+          this.sendError('A weird error occured', client);
+          return;
+        }
+        childToModify.position = node.position;
+        node.position = node.position - 1;
+      }
+      else if (direction == "down") {
+        childToModify = topFolders.find(child => child.position === node.position + 1);
+        if (!childToModify) {
+          this.sendError('A weird error occured', client);
+          return;
+        }
+        childToModify.position = node.position;
+        node.position = node.position + 1;
+      }
+      else {
+        this.sendError('Wrong direction to move', client)
+        return;
+      }
+      await this.NodeRepository.save(childToModify);
+      await this.NodeRepository.save(node);
+      this.sendTree(blindId, client)
+      return;
+    }
+
+    let i = node.position;
+    // console.log("node position", node.position)
+
+    if (i == 0 && direction === "up") {
+      this.sendError('This music is already the first one', client);
+      return;
+    }
+    else if (i == parent.childrens.length - 1 && direction === "down") {
+      this.sendError('This music is already the last one', client);
+      return;
+    }
+    
+    let childToModify;
+
+    if (direction === "up") {
+      childToModify = parent.childrens.find(child => child.position === i - 1);
+      if (!childToModify) {
+        this.sendError('A weird error occured', client);
+        return;
+      }
+      childToModify.position = i;
+      node.position = i - 1;
+    }
+    else if (direction == "down") {
+      childToModify = parent.childrens.find(child => child.position === i + 1);
+      if (!childToModify) {
+        this.sendError('A weird error occured', client);
+        return;
+      }
+      childToModify.position = i;
+      node.position = i + 1;
+    }
+    else {
+      this.sendError('Wrong direction to move', client)
+      return;
+    }
+
+    const updated = await this.NodeRepository.save(childToModify);
+    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeMoved', updated)})
+    const nodeUpdated = await this.NodeRepository.save(node);
+    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeMoved', nodeUpdated)})
+    this.sendTree(blindId, client)
+  }
+
+  async removeNode(blindId: string, nodeId: string, client: Socket) {
+    const node = await this.NodeRepository.findOne({
+      where: { id: parseInt(nodeId) },
+      relations: ['blind', 'parent.childrens'],
+    });
+    if (!node || node.blind.id != parseInt(blindId)) {
+      this.sendError('Node not found or does not belong to blind test', client);
+      return;
+    }
+
+
+    if (node.parent) {
+      let i = 0;
+      const position = node.position;
+
+      node.parent.childrens.forEach(async (n)=>{
+        if(n.position > position) {
+          n.position--;
+          await this.NodeRepository.save(n);
+        }
+      })
+    }
+
     await this.NodeRepository.remove(node);
-    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeRemoved', { nodeId })})
     this.sendTree(blindId, client)
   }
 
@@ -257,14 +383,12 @@ async buildTree(node: BlindNode): Promise<any> {
 
     node.name = newName;
     const updated = await this.NodeRepository.save(node);
-    this.rooms[`room-${blindId}`].forEach((client)=>{client.emit('nodeRenamed', updated)})
     this.sendTree(blindId, client)
   }
 
   leaveBySocket(client: Socket) {
     const blindId = this.clients[client.id];
     if (blindId) {
-      this.rooms[`room-${this.clients[client.id]}`] = this.rooms[`room-${this.clients[client.id]}`].filter((c)=>client.id != c.id)
       delete this.clients[client.id];
     }
   }

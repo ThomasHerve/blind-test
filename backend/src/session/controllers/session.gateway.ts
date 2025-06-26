@@ -28,6 +28,10 @@ interface AddMusicMessage extends BaseMessage {
   videoId: string;
   parentId?: string;
 }
+interface MoveMusicMessage extends BaseMessage {
+  direction: string;
+  nodeId: string;
+}
 interface RemoveNodeMessage extends BaseMessage {
   nodeId: string;
 }
@@ -109,6 +113,25 @@ export class SessionGateway implements OnGatewayConnection, OnGatewayDisconnect 
         payload.parentId,
         payload.url.trim(),
         payload.videoId.trim(),
+        client
+      )
+  }
+
+  @SubscribeMessage('moveMusic')
+  moveMusic(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: MoveMusicMessage,
+  ) {
+      const sessionId = this.validateId(payload.id);
+      ['direction', 'nodeId'].forEach((field) => {
+        if (typeof payload[field] !== 'string' || !payload[field].trim()) {
+          throw new WsException({ status: HttpStatus.BAD_REQUEST, message: `Invalid ${field}` });
+        }
+      });
+      this.sessionService.moveMusic(
+        sessionId,
+        payload.direction,
+        payload.nodeId,
         client
       )
   }

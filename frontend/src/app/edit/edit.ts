@@ -17,6 +17,17 @@ import { FormsModule } from '@angular/forms';
 import { AddMusicDialog } from './add-music-dialog/add-music-dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
+
+class NodeStatus {
+  first: boolean = false
+  last: boolean = false
+
+  constructor(first: boolean, last: boolean) {
+    this.first = first
+    this.last = last
+  }
+}
+
 @Component({
   selector: 'app-edit',
   standalone: true,
@@ -48,11 +59,19 @@ export class Edit implements OnInit {
   editingNodeId: string | null = null;
   editName: string = '';
 
+  private expandedNodeIds = new Set<string>();
+  public nodePos: Map<FolderNode, NodeStatus> = new Map<FolderNode, NodeStatus>();
+
   constructor(
     private cd: ChangeDetectorRef,
     private sanitizer: DomSanitizer,
     private folderService: FolderService,
-  ) {}
+  ) {
+    this.treeControl.expansionModel.changed.subscribe(change => {
+      change.added.forEach(node => this.expandedNodeIds.add(node.id));
+      change.removed.forEach(node => this.expandedNodeIds.delete(node.id));
+    });
+  }
 
   ngOnInit(): void {
     this.blindId = this.route.snapshot.paramMap.get('id')!;
@@ -65,12 +84,42 @@ export class Edit implements OnInit {
 
   loadTree(): void {
     this.folderService.init(this.blindId)
-    this.folderService.tree$.subscribe((next)=>{
-      this.dataSource.data = next
+    this.folderService.tree$.subscribe(next => {
+      this.nodePos.clear();
+      this.setNodesStatus(next);
+      
+      // Mise à jour des données
+      this.dataSource.data = next;
       this.treeControl.dataNodes = next;
-      this.treeControl.expandAll();
+      
+      this.restoreExpandedState(next);
+
       this.cd.detectChanges();
+    });
+  }
+
+  setNodesStatus(folderNode: FolderNode[]) {
+    folderNode.sort((a,b)=>a.position - b.position)
+    const len = folderNode.length;
+    folderNode.forEach((node)=>{
+      this.nodePos.set(node, new NodeStatus(
+        node.position == 0,
+        node.position == len - 1
+      ))
+      if(node.childrens && node.childrens.length > 0)
+        this.setNodesStatus(node.childrens)
     })
+  }
+
+  restoreExpandedState(nodes: FolderNode[]): void {
+    for (const node of nodes) {
+      if (this.expandedNodeIds.has(node.id)) {
+        this.treeControl.expand(node);
+      }
+      if (node.childrens && node.childrens.length > 0) {
+        this.restoreExpandedState(node.childrens);
+      }
+    }
   }
 
   hasChild = (_: number, node: FolderNode) => !!node.childrens && node.childrens.length > 0;
@@ -106,7 +155,6 @@ export class Edit implements OnInit {
     dialogRef.afterClosed().subscribe(name => {
       if (name && name.trim()) {
         this.folderService.addFolder(this.blindId, name, parent?.id || undefined);
-        this.loadTree();
       }
     });
   }
@@ -121,15 +169,19 @@ export class Edit implements OnInit {
       if (video && video.url) {
         console.log('URL sélectionnée:', video.url);
         this.folderService.addMusic(this.blindId, video.title, video.url, video.id, parent?.id);
-        this.loadTree();
       }
     });
   }
 
+  moveMusic(direction: string, node: FolderNode) {
+    console.debug("moveMusic");
+    this.folderService.moveMusic(this.blindId, direction, node.id)
+  }
+
   deleteNode(node: FolderNode): void {
+    console.debug('deleteNode', node)
     if (confirm(`Supprimer le dossier "${node.name}" et tout son contenu ?`)) {
       this.folderService.removeNode(this.blindId, node.id);
-      this.loadTree();
     }
   }
 
