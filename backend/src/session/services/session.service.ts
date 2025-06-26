@@ -354,12 +354,27 @@ async buildTree(node: BlindNode): Promise<any> {
       return;
     }
 
-
+    const position = node.position;
     if (node.parent) {
-      let i = 0;
-      const position = node.position;
-
       node.parent.childrens.forEach(async (n)=>{
+        if(n.position > position) {
+          n.position--;
+          await this.NodeRepository.save(n);
+        }
+      })
+    }
+    else {
+      const blind = await this.BlindEntriesRepository.findOneBy({ id: parseInt(blindId) });
+      if (!blind) {
+        this.sendError('Blind test not found', client);
+        return;
+      } 
+      let topFolders = await this.NodeRepository.find({
+        where:  {blind: blind},
+        relations: ["parent", "blind"]
+      })
+      topFolders = topFolders.filter((folder)=>folder.parent == null)
+      topFolders.forEach(async (n)=>{
         if(n.position > position) {
           n.position--;
           await this.NodeRepository.save(n);
