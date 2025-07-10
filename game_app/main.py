@@ -7,6 +7,8 @@ from tkinter import ttk, filedialog, messagebox
 import vlc
 import time
 import threading
+import serial
+import serial.tools.list_ports
 
 # Palette de couleurs cycliques pour chaque niveau de dossier
 COLORS = ['red', 'green', 'blue', 'orange', 'purple', 'teal', 'brown']
@@ -45,11 +47,12 @@ def format_time(ms):
 
 # Fenêtre Player
 class AudioPlayer(tk.Toplevel):
-    def __init__(self, master, track_list, root_path, teams):
+    def __init__(self, master, track_list, root_path, teams, serial_port=None):
         super().__init__(master)
         self.root_path = root_path
         self.track_list = track_list
         self.index = 0
+        self.serial_port = serial_port
         self.instance = vlc.Instance('--no-video')
         self.player = self.instance.media_player_new()
         self.duration = 1
@@ -65,12 +68,35 @@ class AudioPlayer(tk.Toplevel):
         self._load_track()
         self._build_ui()
         threading.Thread(target=self._auto_update, daemon=True).start()
+        if self.serial_port:
+            threading.Thread(target=self._listen_serial, daemon=True).start()
+
+    def _listen_serial(self):
+        try:
+            ser = serial.Serial(self.serial_port, 115200, timeout=1)
+            time.sleep(2)
+            while True:
+                line = ser.readline().decode('utf-8', errors='ignore').strip()
+                if line == 'BUTTON_PRESSED':
+                    self.next_track()
+        except Exception as e:
+            print(f"Erreur série: {e}")
+
+    def _load_media(self, path):
+        media = self.instance.media_new(path)
+        self.player.set_media(media)
+
+    def _load_track(self):
+        self._load_media(self.track_list[self.index])
+        self.duration = 1
+        self.playing = False
+        self.paused_at = 0
 
     def _build_ui(self):
         self.title("Lecteur Audio MP4")
         self.geometry("600x480")
 
-        # Affichage deroulement audio controls
+        # Contrôles de lecture
         ctrl = tk.Frame(self)
         ctrl.pack(pady=5)
         tk.Button(ctrl, text="←", command=self.prev_track).grid(row=0, column=0, padx=5)
@@ -102,6 +128,16 @@ class AudioPlayer(tk.Toplevel):
         self.score_frame.pack(fill="x", padx=10, pady=10)
         self._build_score_ui()
 
+    def _update_path_display(self):
+        for w in self.tree_frame.winfo_children(): w.destroy()
+        full = self.track_list[self.index]
+        rel = os.path.relpath(full, self.root_path)
+        parts = rel.split(os.sep)
+        for i, part in enumerate(parts):
+            clean = re.sub(r'^\d+', '', part).replace('-', ' ').strip()
+            color = COLORS[i % len(COLORS)]
+            tk.Label(self.tree_frame, text=clean, fg=color).pack(anchor='w')
+
     def _build_score_ui(self):
         for w in self.score_frame.winfo_children(): w.destroy()
         for i, t in enumerate(self.teams):
@@ -114,32 +150,11 @@ class AudioPlayer(tk.Toplevel):
             lbl.pack(side='left')
             plus = tk.Button(row, text='+', command=lambda i=i: self._change_score(i, +1))
             plus.pack(side='left')
-            # conserver label pour mise à jour
             t['label'] = lbl
 
     def _change_score(self, idx, delta):
         self.teams[idx]['score'] += delta
         self.teams[idx]['label'].config(text=str(self.teams[idx]['score']))
-
-    def _load_media(self, path):
-        media = self.instance.media_new(path)
-        self.player.set_media(media)
-
-    def _load_track(self):
-        self._load_media(self.track_list[self.index])
-        self.duration = 1
-        self.playing = False
-        self.paused_at = 0
-
-    def _update_path_display(self):
-        for w in self.tree_frame.winfo_children(): w.destroy()
-        full = self.track_list[self.index]
-        rel = os.path.relpath(full, self.root_path)
-        parts = rel.split(os.sep)
-        for i, part in enumerate(parts):
-            clean = re.sub(r'^\d+', '', part).replace('-', ' ').strip()
-            color = COLORS[i % len(COLORS)]
-            tk.Label(self.tree_frame, text=clean, fg=color).pack(anchor='w')
 
     def toggle_play(self):
         if self.playing:
@@ -194,9 +209,10 @@ class IntroWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Blind Test - Accueil")
-        self.geometry("500x250")
+        self.geometry("500x300")
         self.protocol("WM_DELETE_WINDOW", self.quit_program)
 
+        # Chemin du dossier
         tk.Label(self, text="Chemin du dossier BLIND-TEST:").pack(pady=5)
         frame = tk.Frame(self)
         frame.pack()
@@ -206,7 +222,17 @@ class IntroWindow(tk.Tk):
         self.entry.insert(0, default_dir)
         tk.Button(frame, text="Parcourir", command=self.browse).pack(side='left')
 
-        # Section équipes dynamiques
+        # Sélection du port série
+        port_frame = tk.Frame(self)
+        port_frame.pack(pady=5)
+        tk.Label(port_frame, text="Port série:").pack(side='left')
+        self.port_var = tk.StringVar()
+        self.port_combo = ttk.Combobox(port_frame, textvariable=self.port_var, width=30, state='readonly')
+        self.port_combo['values'] = [p.device for p in serial.tools.list_ports.comports()]
+        self.port_combo.pack(side='left', padx=5)
+        tk.Button(port_frame, text="Rafraîchir", command=self.refresh_ports).pack(side='left')
+
+        # Équipes
         team_frame = tk.LabelFrame(self, text="Équipes")
         team_frame.pack(pady=10, fill='x', padx=10)
         self.team_frame = team_frame
@@ -215,10 +241,15 @@ class IntroWindow(tk.Tk):
         btn_frame.pack(fill='x')
         tk.Button(btn_frame, text="+ Ajouter équipe", command=self.add_team).pack(side='left', padx=5)
         tk.Button(btn_frame, text="- Supprimer équipe", command=self.del_team).pack(side='left')
-        # équipes par défaut
         for i in range(2): self.add_team()
 
         tk.Button(self, text="Jouer", command=self.start_game).pack(pady=10)
+
+    def refresh_ports(self):
+        ports = [p.device for p in serial.tools.list_ports.comports()]
+        self.port_combo['values'] = ports
+        if ports:
+            self.port_combo.current(0)
 
     def browse(self):
         initial = os.path.dirname(os.path.abspath(__file__))
@@ -248,8 +279,9 @@ class IntroWindow(tk.Tk):
             messagebox.showerror("Erreur", "Aucun fichier mp4 trouvé.")
             return
         teams = [e.get().strip() for e in self.team_entries]
+        port = self.port_var.get() or None
         self.withdraw()
-        AudioPlayer(self, tracks, path, teams)
+        AudioPlayer(self, tracks, path, teams, serial_port=port)
 
     def quit_program(self):
         self.destroy(); sys.exit(0)
