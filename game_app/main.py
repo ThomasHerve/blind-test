@@ -13,13 +13,12 @@ import serial.tools.list_ports
 # Palette de couleurs cycliques pour chaque niveau de dossier
 COLORS = ['red', 'green', 'blue', 'orange', 'purple', 'teal', 'brown']
 
-# Si sous Windows, ajouter automatiquement le répertoire de VLC au PATH
-if sys.platform == 'win32':
-    vlc_paths = [r"C:\Program Files\VideoLAN\VLC", r"C:\Program Files (x86)\VideoLAN\VLC"]
-    for p in vlc_paths:
-        if os.path.isdir(p):
-            os.environ['PATH'] += os.pathsep + p
-            break
+# Sons disponibles dans ./sounds
+def list_sounds():
+    sounds_dir = os.path.join(os.path.dirname(__file__), 'sounds')
+    if not os.path.isdir(sounds_dir):
+        return []
+    return [f for f in os.listdir(sounds_dir) if f.lower().endswith('.mp3')]
 
 # Parcours BFS pour lister .mp4
 def list_mp4_bfs(root_path):
@@ -47,7 +46,7 @@ def format_time(ms):
 
 # Fenêtre Player
 class AudioPlayer(tk.Toplevel):
-    def __init__(self, master, track_list, root_path, teams, serial_port=None):
+    def __init__(self, master, track_list, root_path, teams, sounds, serial_port=None):
         super().__init__(master)
         self.root_path = root_path
         self.track_list = track_list
@@ -55,6 +54,9 @@ class AudioPlayer(tk.Toplevel):
         self.serial_port = serial_port
         self.instance = vlc.Instance('--no-video')
         self.player = self.instance.media_player_new()
+        self.sound_players = []
+        self.sounds = sounds
+        self._load_sounds()
         self.duration = 1
         self.playing = False
         self.start_time = 0
@@ -62,7 +64,7 @@ class AudioPlayer(tk.Toplevel):
         self.player.audio_set_volume(50)
 
         # Scores initiaux
-        self.teams = [{'name': n, 'score': 0} for n in teams]
+        self.teams = [{'name': n, 'score': 0, 'sound': sounds[i] if i < len(sounds) else None} for i, n in enumerate(teams)]
 
         self.protocol("WM_DELETE_WINDOW", self._quit_all)
         self._load_track()
@@ -71,14 +73,30 @@ class AudioPlayer(tk.Toplevel):
         if self.serial_port:
             threading.Thread(target=self._listen_serial, daemon=True).start()
 
+    def _load_sounds(self):
+        # create VLC players for each team sound
+        for snd in self.sounds:
+            path = os.path.join(os.path.dirname(__file__), 'sounds', snd)
+            inst = vlc.Instance()
+            pl = inst.media_player_new()
+            media = inst.media_new(path)
+            pl.set_media(media)
+            self.sound_players.append(pl)
+
+    def _play_team_sound(self, idx):
+        if 0 <= idx < len(self.sound_players):
+            self.sound_players[idx].play()
+
     def _listen_serial(self):
         try:
             ser = serial.Serial(self.serial_port, 115200, timeout=1)
             time.sleep(2)
             while True:
                 line = ser.readline().decode('utf-8', errors='ignore').strip()
-                if line == 'BUTTON_PRESSED':
-                    self.pause()
+                m = re.match(r'BUTTON_PRESSED_(\d+)', line)
+                if m:
+                    idx = int(m.group(1)) - 1
+                    self._play_team_sound(idx)
         except Exception as e:
             print(f"Erreur série: {e}")
 
@@ -94,7 +112,7 @@ class AudioPlayer(tk.Toplevel):
 
     def _build_ui(self):
         self.title("Lecteur Audio MP4")
-        self.geometry("600x480")
+        self.geometry("600x600")
 
         # Contrôles de lecture
         ctrl = tk.Frame(self)
@@ -123,8 +141,8 @@ class AudioPlayer(tk.Toplevel):
         self.tree_frame.pack(fill="x", padx=10, pady=5)
         self._update_path_display()
 
-        # Section scores avec liste, + et -
-        self.score_frame = tk.LabelFrame(self, text="Scores")
+        # Section scores et sons
+        self.score_frame = tk.LabelFrame(self, text="Équipes & Sons")
         self.score_frame.pack(fill="x", padx=10, pady=10)
         self._build_score_ui()
 
@@ -143,24 +161,33 @@ class AudioPlayer(tk.Toplevel):
         for i, t in enumerate(self.teams):
             row = tk.Frame(self.score_frame)
             row.pack(fill='x', pady=2)
-            tk.Label(row, text=t['name'], width=20, anchor='w').pack(side='left')
+            tk.Label(row, text=t['name'], width=15, anchor='w').pack(side='left')
             minus = tk.Button(row, text='-', command=lambda i=i: self._change_score(i, -1))
             minus.pack(side='left')
             lbl = tk.Label(row, text=str(t['score']), width=3)
             lbl.pack(side='left')
             plus = tk.Button(row, text='+', command=lambda i=i: self._change_score(i, +1))
             plus.pack(side='left')
+            # combobox pour son
+            cb = ttk.Combobox(row, values=self.sounds, width=15)
+            cb.set(t['sound'] or '')
+            cb.pack(side='right', padx=5)
+            cb.bind('<<ComboboxSelected>>', lambda e, i=i: self._select_sound(i, e.widget.get()))
             t['label'] = lbl
+            t['cb'] = cb
+
+    def _select_sound(self, idx, sound_name):
+        self.teams[idx]['sound'] = sound_name
+        # reload sound player for this index
+        path = os.path.join(os.path.dirname(__file__), 'sounds', sound_name)
+        inst = vlc.Instance()
+        pl = inst.media_player_new()
+        pl.set_media(inst.media_new(path))
+        self.sound_players[idx] = pl
 
     def _change_score(self, idx, delta):
         self.teams[idx]['score'] += delta
         self.teams[idx]['label'].config(text=str(self.teams[idx]['score']))
-
-    def pause(self):
-        self.player.pause()
-        self.paused_at = time.time() - self.start_time
-        self.play_btn.config(text="Play")
-        self.playing = False
 
     def toggle_play(self):
         if self.playing:
@@ -215,7 +242,7 @@ class IntroWindow(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Blind Test - Accueil")
-        self.geometry("500x300")
+        self.geometry("500x350")
         self.protocol("WM_DELETE_WINDOW", self.quit_program)
 
         # Chemin du dossier
@@ -238,11 +265,12 @@ class IntroWindow(tk.Tk):
         self.port_combo.pack(side='left', padx=5)
         tk.Button(port_frame, text="Rafraîchir", command=self.refresh_ports).pack(side='left')
 
-        # Équipes
-        team_frame = tk.LabelFrame(self, text="Équipes")
+        # Section équipes dynamiques
+        team_frame = tk.LabelFrame(self, text="Équipes & Sons")
         team_frame.pack(pady=10, fill='x', padx=10)
         self.team_frame = team_frame
         self.team_entries = []
+        self.team_sounds = list_sounds()
         btn_frame = tk.Frame(team_frame)
         btn_frame.pack(fill='x')
         tk.Button(btn_frame, text="+ Ajouter équipe", command=self.add_team).pack(side='left', padx=5)
@@ -265,15 +293,21 @@ class IntroWindow(tk.Tk):
             self.entry.insert(0, path)
 
     def add_team(self):
-        e = tk.Entry(self.team_frame, width=20)
+        row = tk.Frame(self.team_frame)
+        row.pack(fill='x', pady=2)
+        e = tk.Entry(row, width=15)
         e.insert(0, f"équipe {len(self.team_entries)+1}")
-        e.pack(side='left', padx=5, pady=5)
-        self.team_entries.append(e)
+        e.pack(side='left', padx=5)
+        cb = ttk.Combobox(row, values=self.team_sounds, width=15)
+        if self.team_sounds:
+            cb.current(0)
+        cb.pack(side='left', padx=5)
+        self.team_entries.append((e, cb))
 
     def del_team(self):
         if self.team_entries:
-            e = self.team_entries.pop()
-            e.destroy()
+            e, cb = self.team_entries.pop()
+            e.master.destroy()
 
     def start_game(self):
         path = self.entry.get()
@@ -284,10 +318,11 @@ class IntroWindow(tk.Tk):
         if not tracks:
             messagebox.showerror("Erreur", "Aucun fichier mp4 trouvé.")
             return
-        teams = [e.get().strip() for e in self.team_entries]
+        teams = [e.get().strip() for e, _ in self.team_entries]
+        sounds = [cb.get() for _, cb in self.team_entries]
         port = self.port_var.get() or None
         self.withdraw()
-        AudioPlayer(self, tracks, path, teams, serial_port=port)
+        AudioPlayer(self, tracks, path, teams, sounds, serial_port=port)
 
     def quit_program(self):
         self.destroy(); sys.exit(0)
