@@ -78,7 +78,7 @@ class AudioPlayer(tk.Toplevel):
             while True:
                 line = ser.readline().decode('utf-8', errors='ignore').strip()
                 if line == 'BUTTON_PRESSED':
-                    self.next_track()
+                    self.pause()
         except Exception as e:
             print(f"Erreur série: {e}")
 
@@ -155,6 +155,12 @@ class AudioPlayer(tk.Toplevel):
     def _change_score(self, idx, delta):
         self.teams[idx]['score'] += delta
         self.teams[idx]['label'].config(text=str(self.teams[idx]['score']))
+
+    def pause(self):
+        self.player.pause()
+        self.paused_at = time.time() - self.start_time
+        self.play_btn.config(text="Play")
+        self.playing = False
 
     def toggle_play(self):
         if self.playing:
