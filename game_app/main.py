@@ -81,11 +81,19 @@ class AudioPlayer(tk.Toplevel):
             pl = inst.media_player_new()
             media = inst.media_new(path)
             pl.set_media(media)
-            self.sound_players.append(pl)
+            self.sound_players.append((snd,pl))
 
     def _play_team_sound(self, idx):
         if 0 <= idx < len(self.sound_players):
             self.sound_players[idx].play()
+    
+    def _play_team_sound(self, idx):
+        name, player = self.sound_players[idx]
+        media_path = os.path.join(os.path.dirname(__file__), 'sounds', name)
+        inst = vlc.Instance()
+        media = inst.media_new(media_path)
+        player.set_media(media)
+        player.play()
 
     def _listen_serial(self):
         try:
@@ -93,6 +101,7 @@ class AudioPlayer(tk.Toplevel):
             time.sleep(2)
             while True:
                 line = ser.readline().decode('utf-8', errors='ignore').strip()
+                print(line)
                 m = re.match(r'BUTTON_PRESSED_(\d+)', line)
                 if m:
                     idx = int(m.group(1)) - 1
@@ -271,6 +280,8 @@ class IntroWindow(tk.Tk):
         self.team_frame = team_frame
         self.team_entries = []
         self.team_sounds = list_sounds()
+        self.play_sounds = []
+        self._load_sounds()
         btn_frame = tk.Frame(team_frame)
         btn_frame.pack(fill='x')
         tk.Button(btn_frame, text="+ Ajouter équipe", command=self.add_team).pack(side='left', padx=5)
@@ -302,12 +313,36 @@ class IntroWindow(tk.Tk):
         if self.team_sounds:
             cb.current(0)
         cb.pack(side='left', padx=5)
+        b = ttk.Button(row, text="play", command=lambda i=len(self.team_entries): self._play_team_sound(i))
+        b.pack(side='left', padx=5)
         self.team_entries.append((e, cb))
 
     def del_team(self):
         if self.team_entries:
             e, cb = self.team_entries.pop()
             e.master.destroy()
+            
+    def _load_sounds(self):
+        # create VLC players for each team sound
+        for snd in self.team_sounds:
+            path = os.path.join(os.path.dirname(__file__), 'sounds', snd)
+            inst = vlc.Instance()
+            pl = inst.media_player_new()
+            media = inst.media_new(path)
+            pl.set_media(media)
+            self.play_sounds.append((snd, pl))
+
+    def _play_team_sound(self, idx):
+        sounds = [cb.get() for _, cb in self.team_entries]
+        selected_sound = sounds[idx]
+        for name, player in self.play_sounds:
+            if name == selected_sound:
+                # Réassigner le média pour forcer la lecture à redémarrer
+                media_path = os.path.join(os.path.dirname(__file__), 'sounds', name)
+                inst = vlc.Instance()
+                media = inst.media_new(media_path)
+                player.set_media(media)
+                player.play()
 
     def start_game(self):
         path = self.entry.get()
