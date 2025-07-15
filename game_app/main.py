@@ -88,23 +88,25 @@ class AudioPlayer(tk.Toplevel):
             self.sound_players[idx].play()
     
     def _play_team_sound(self, idx):
-        name, player = self.sound_players[idx]
-        media_path = os.path.join(os.path.dirname(__file__), 'sounds', name)
-        inst = vlc.Instance()
-        media = inst.media_new(media_path)
-        player.set_media(media)
-        player.play()
+        if idx < len(self.sound_players):
+            name, player = self.sound_players[idx]
+            media_path = os.path.join(os.path.dirname(__file__), 'sounds', name)
+            inst = vlc.Instance()
+            media = inst.media_new(media_path)
+            player.set_media(media)
+            player.play()
 
     def _listen_serial(self):
         try:
             ser = serial.Serial(self.serial_port, 115200, timeout=1)
             time.sleep(2)
+            print(ser)
             while True:
                 line = ser.readline().decode('utf-8', errors='ignore').strip()
-                print(line)
                 m = re.match(r'BUTTON_PRESSED_(\d+)', line)
                 if m:
                     idx = int(m.group(1)) - 1
+                    self.force_pause()
                     self._play_team_sound(idx)
         except Exception as e:
             print(f"Erreur série: {e}")
@@ -210,6 +212,13 @@ class AudioPlayer(tk.Toplevel):
             self.start_time = time.time() - getattr(self, 'paused_at', 0)
             self.play_btn.config(text="Pause")
         self.playing = not self.playing
+    
+    def force_pause(self):
+        if self.playing:
+            self.player.pause()
+            self.paused_at = time.time() - self.start_time
+            self.play_btn.config(text="Play")
+            self.playing = False
 
     def on_seek(self, event):
         val = self.scale.get()
