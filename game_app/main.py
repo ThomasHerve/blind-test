@@ -12,6 +12,13 @@ import serial.tools.list_ports
 
 # Palette de couleurs cycliques pour chaque niveau de dossier
 COLORS = ['red', 'green', 'blue', 'orange', 'purple', 'teal', 'brown']
+ser = None
+try:
+    ser = serial.Serial( [p.device for p in serial.tools.list_ports.comports()][0], 115200, timeout=1)
+    time.sleep(2)
+    print(ser)
+except Exception as e:
+    print(f"Erreur série: {e}")
 
 # Sons disponibles dans ./sounds
 def list_sounds():
@@ -98,9 +105,6 @@ class AudioPlayer(tk.Toplevel):
 
     def _listen_serial(self):
         try:
-            ser = serial.Serial(self.serial_port, 115200, timeout=1)
-            time.sleep(2)
-            print(ser)
             while True:
                 line = ser.readline().decode('utf-8', errors='ignore').strip()
                 m = re.match(r'BUTTON_PRESSED_(\d+)', line)
@@ -298,6 +302,9 @@ class IntroWindow(tk.Tk):
         for i in range(2): self.add_team()
 
         tk.Button(self, text="Jouer", command=self.start_game).pack(pady=10)
+        self.thread = threading.Thread(target=self._listen_serial, daemon=True)
+        self.on = True
+        self.thread.start()
 
     def refresh_ports(self):
         ports = [p.device for p in serial.tools.list_ports.comports()]
@@ -352,6 +359,17 @@ class IntroWindow(tk.Tk):
                 media = inst.media_new(media_path)
                 player.set_media(media)
                 player.play()
+    
+    def _listen_serial(self):
+        try:
+            while self.on:
+                line = ser.readline().decode('utf-8', errors='ignore').strip()
+                m = re.match(r'BUTTON_PRESSED_(\d+)', line)
+                if m:
+                    idx = int(m.group(1)) - 1
+                    self._play_team_sound(idx)
+        except Exception as e:
+            print(f"Erreur série: {e}")
 
     def start_game(self):
         path = self.entry.get()
@@ -366,6 +384,7 @@ class IntroWindow(tk.Tk):
         sounds = [cb.get() for _, cb in self.team_entries]
         port = self.port_var.get() or None
         self.withdraw()
+        self.on = False
         AudioPlayer(self, tracks, path, teams, sounds, serial_port=port)
 
     def quit_program(self):
